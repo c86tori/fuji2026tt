@@ -17,6 +17,19 @@
   `;
   document.head.appendChild(style);
 
+  var lang = document.documentElement.lang || 'ja';
+  var langCode = lang.indexOf('zh') === 0 ? 'zh-tw' : (lang.indexOf('en') === 0 ? 'en' : 'ja');
+  var dayLabel = document.body.dataset.dayLabel || '';
+  var dayCode = dayLabel.indexOf('24') === 0 ? '24fri' : (dayLabel.indexOf('25') === 0 ? '25sat' : '26sun');
+  var viewerPrefix = langCode === 'ja' ? '' : '../';
+  document.querySelectorAll('a[href$=".pdf"]').forEach(function(link){
+    link.href = viewerPrefix + 'pdf-viewer.html?day=' + dayCode + '&lang=' + langCode;
+    link.removeAttribute('download');
+  });
+  document.querySelectorAll('a[href$=".csv"]').forEach(function(link){
+    link.setAttribute('download','');
+  });
+
   var sheet = document.querySelector('.sheet');
   if (!sheet) return;
 

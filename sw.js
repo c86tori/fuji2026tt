@@ -1,6 +1,6 @@
 /* FUJI '26 timetable — offline service worker.
    To publish updated content, bump CACHE (e.g. v1 -> v2). */
-const CACHE = 'fuji2026-v4';
+const CACHE = 'fuji2026-v6';
 
 const ASSETS = [
   './', 'index.html',
@@ -12,6 +12,7 @@ const ASSETS = [
   'en/24fri-landscape.html', 'en/25sat-landscape.html', 'en/26sun-landscape.html',
   'zh-tw/24fri-live.html', 'zh-tw/25sat-live.html', 'zh-tw/26sun-live.html',
   'zh-tw/24fri-landscape.html', 'zh-tw/25sat-landscape.html', 'zh-tw/26sun-landscape.html',
+  'pdf-viewer.html',
   'assets/24fri.png', 'assets/25sat.png', 'assets/26sun.png',
   'assets/24fri.csv', 'assets/25sat.csv', 'assets/26sun.csv',
   'assets/icon-180.png', 'assets/icon-192.png', 'assets/icon-512.png',
