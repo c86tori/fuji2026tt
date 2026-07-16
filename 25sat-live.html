@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>25 SAT 現在時刻つきタイムテーブル</title>
   <style>
     :root {
@@ -171,6 +171,7 @@
         padding:3px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);letter-spacing:.02em;
       }
     }
+    html,body{touch-action:manipulation}
 </style>
 </head>
 <body data-day-label="25 SAT" data-start-utc="2026-07-25T00:00:00Z" data-end-utc="2026-07-25T20:00:00Z">
@@ -475,8 +476,8 @@
     var zin=document.getElementById('zoomIn'), zout=document.getElementById('zoomOut'), zlab=document.getElementById('zoomLabel');
     if(!viewer||!sheet||!zin||!zout||!ctl) return;
     var BASE=1100, KEY='fuji2026-zoom-v1', FIT=ctl.getAttribute('data-fit-label')||'FIT';
-    var LEVELS=['fit',75,100,150,200];
-    var idx=2;
+    var LEVELS=['fit',50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200];
+    var idx=6;
     var saved=localStorage.getItem(KEY);
     if(saved!==null){ var want=(saved==='fit')?'fit':parseInt(saved,10); var si=LEVELS.indexOf(want); if(si>=0) idx=si; }
     function widthFor(level){ return (level==='fit') ? viewer.clientWidth : Math.round(BASE*(level/100)); }
@@ -497,6 +498,14 @@
     var rt;
     window.addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ apply(false); }, 150); });
     apply(false);
+  })();
+</script>
+
+<script>
+  (function(){
+    ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+      document.addEventListener(ev, function(e){ e.preventDefault(); }, {passive:false});
+    });
   })();
 </script>
 </body>

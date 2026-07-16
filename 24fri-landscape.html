@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
   <title>24 FRI 横向きビュー / FUJI ROCK FESTIVAL '26</title>
   <style>
     :root {--bg:#f7f5ef;--paper:#fffef9;--ink:#151515;--muted:#67625b;--line:#ded8cc;--accent:#f36b21;--stage-top:7.58%;--stage-bottom:96.13%;}
@@ -196,6 +196,7 @@
       .viewer{height:calc(100dvh - 96px)}
       .status{display:none}
     }
+    html,body{touch-action:manipulation}
 </style>
 </head>
 <body data-day-label="24 FRI" data-start-utc="2026-07-24T00:00:00Z" data-end-utc="2026-07-24T20:00:00Z">
@@ -490,7 +491,7 @@
     var zin=document.getElementById('zoomIn'), zout=document.getElementById('zoomOut'), zlab=document.getElementById('zoomLabel');
     if(!viewer||!sheet||!zin||!zout) return;
     var KEY='fuji2026-zoom-ls-v1';
-    var LEVELS=[100,125,150,175,200];  // 100% = the fitted rotated default; zoom in only
+    var LEVELS=[100,110,120,130,140,150,160,170,180,190,200];  // 100% = fitted rotated default; zoom in only, 10% steps
     var idx=0;
     var saved=parseInt(localStorage.getItem(KEY),10);
     var si=LEVELS.indexOf(saved); if(si>=0) idx=si;
@@ -513,6 +514,14 @@
     var rt;
     window.addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ apply(false); }, 150); });
     apply(false);
+  })();
+</script>
+
+<script>
+  (function(){
+    ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+      document.addEventListener(ev, function(e){ e.preventDefault(); }, {passive:false});
+    });
   })();
 </script>
 </body>
