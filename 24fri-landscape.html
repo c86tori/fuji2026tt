@@ -57,8 +57,8 @@
     .pick-cell.is-picked{background:var(--pick-color,rgba(18,18,18,.78));border-color:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22),0 1px 4px rgba(0,0,0,.18)}
     .pick-cell.is-picked span{opacity:1}
     @media(hover:hover){.pick-cell:hover{border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.08)}.pick-cell.is-picked:hover{background:var(--pick-color-hover,var(--pick-color,rgba(18,18,18,.84)))}}
-    @media(max-width:680px){.pick-help{font-size:11px}.pick-cell{font-size:9px}}
-    @media (max-width: 820px) and (orientation: portrait){.pick-cell{font-size:8px;border-radius:3px}}
+    @media(max-width:680px){.pick-help{font-size:11px}.pick-cell{font-size:calc(9px * max(1, var(--zscale,1)))}}
+    @media (max-width: 820px) and (orientation: portrait){.pick-cell{font-size:calc(8px * max(1, var(--zscale,1)));border-radius:3px}}
 
 
     @media (max-width: 820px) {
@@ -425,7 +425,7 @@
   })();
 </script>
 
-<div class="zoomctl" role="group" aria-label="ズーム">
+<div class="zoomctl" role="group" aria-label="ズーム" data-fit-label="全体">
   <button type="button" class="zbtn" id="zoomIn" aria-label="拡大">＋</button>
   <span class="zlabel" id="zoomLabel" aria-hidden="true">100%</span>
   <button type="button" class="zbtn" id="zoomOut" aria-label="縮小">−</button>
@@ -488,24 +488,37 @@
 <script>
   (function(){
     var viewer=document.querySelector('.viewer'), sheet=document.querySelector('.sheet');
-    var zin=document.getElementById('zoomIn'), zout=document.getElementById('zoomOut'), zlab=document.getElementById('zoomLabel');
-    if(!viewer||!sheet||!zin||!zout) return;
-    var KEY='fuji2026-zoom-ls-v1';
-    var LEVELS=[100,110,120,130,140,150,160,170,180,190,200];  // 100% = fitted rotated default; zoom in only, 10% steps
-    var idx=0;
-    var saved=parseInt(localStorage.getItem(KEY),10);
-    var si=LEVELS.indexOf(saved); if(si>=0) idx=si;
+    var img=sheet&&sheet.querySelector('img');
+    var zin=document.getElementById('zoomIn'), zout=document.getElementById('zoomOut'), zlab=document.getElementById('zoomLabel'), ctl=document.querySelector('.zoomctl');
+    if(!viewer||!sheet||!img||!zin||!zout||!ctl) return;
+    var KEY='fuji2026-zoom-ls-v1', FIT=ctl.getAttribute('data-fit-label')||'FIT';
+    var LEVELS=['fit',60,70,80,90,100,110,120,130,140,150,160,170,180,190,200];  // 100% = fitted rotated default
+    var idx=LEVELS.indexOf(100);
+    var saved=localStorage.getItem(KEY);
+    if(saved!==null){ var want=(saved==='fit')?'fit':parseInt(saved,10); var si=LEVELS.indexOf(want); if(si>=0) idx=si; }
+    function fitWidth(){
+      var ar=(img.naturalWidth/img.naturalHeight)||1.414;
+      if(window.matchMedia('(orientation:portrait)').matches){
+        // rotated view: sheet width maps to screen height, sheet height to screen width
+        return Math.min(window.innerHeight-72, window.innerWidth*ar);
+      }
+      return Math.min(viewer.clientWidth, viewer.clientHeight*ar);
+    }
     function apply(save){
-      if(!window.matchMedia('(max-width:820px)').matches){ sheet.style.width=''; return; }
+      if(!window.matchMedia('(max-width:820px)').matches){ sheet.style.width=''; sheet.style.minWidth=''; sheet.style.removeProperty('--zscale'); return; }
       var level=LEVELS[idx];
       var prevW=sheet.offsetWidth||viewer.clientWidth;
       var centre=(viewer.scrollLeft+viewer.clientWidth/2)/prevW;
-      sheet.style.width='';                 // reset to the CSS-fitted default to measure 100%
+      sheet.style.width=''; sheet.style.minWidth='';
       var base=sheet.offsetWidth;
-      var w=base;
-      if(level!==100){ w=Math.round(base*level/100); sheet.style.width=w+'px'; }
+      var w;
+      if(level==='fit'){ w=Math.round(fitWidth()); }
+      else if(level===100){ w=base; }
+      else { w=Math.round(base*level/100); }
+      if(level!==100){ sheet.style.minWidth='0px'; sheet.style.width=w+'px'; }
+      sheet.style.setProperty('--zscale', (w/base).toFixed(3));
       viewer.scrollLeft=Math.max(0, centre*w - viewer.clientWidth/2);
-      if(zlab) zlab.textContent=level+'%';
+      if(zlab) zlab.textContent=(level==='fit')?FIT:level+'%';
       zout.disabled=(idx<=0); zin.disabled=(idx>=LEVELS.length-1);
       if(save!==false) localStorage.setItem(KEY, String(level));
     }
