@@ -3,6 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#f36b21">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FUJI '26">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="icon" type="image/png" href="assets/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>26 SUN 現在時刻つきタイムテーブル</title>
   <style>
     :root {
@@ -144,6 +152,9 @@
       .info-links a{flex:1;display:inline-flex;align-items:center;justify-content:center;min-height:46px;border-radius:999px;text-decoration:none;font-weight:1000;font-size:14px}
       .info-links a:first-child{background:#111;color:#fff}
       .info-links a:last-child{background:#ece7dd;color:#111}
+      .info-line{margin:12px 0 0;font-size:12px;line-height:1.6;color:var(--muted);font-weight:600}
+      .info-disclaimer{margin:16px 0 2px;padding:11px 13px;border-radius:12px;background:#fff5ec;border:1px solid #f2d3b8;font-size:11.5px;line-height:1.6;color:var(--ink);font-weight:600}
+      .info-disclaimer strong{color:#c2410c}
       .info-close{width:100%;margin-top:12px;min-height:44px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer}
     }
 
@@ -431,10 +442,12 @@
 <aside class="info-sheet" id="infoSheet" role="dialog" aria-modal="true" aria-label="このページの説明">
   <div class="info-grip" aria-hidden="true"></div>
   <h2 class="info-title">FUJI ROCK FESTIVAL '26<small>26 SUN タイムテーブル</small></h2>
-  <p class="info-desc">09:00-29:00、10分刻み、ステージ別。赤線が現在時刻の位置を示します。</p>
   <div class="info-clock"><strong id="infoClock">—</strong><span id="infoStatus"></span></div>
+  <p class="info-line">赤い線は、いまの時刻を示します。</p>
   <p class="info-help">タップするたびに ハイライト → ゴールド → レインボー と変化します。もう一度タップで解除。選択はこの端末に保存されます。</p>
+  <p class="info-line">スマホの「ホーム画面に追加」で、アプリのように起動できます。</p>
   <div class="info-links"><a href="assets/26sun.pdf">この日のPDFをみる</a><a href="assets/26sun.csv">CSV</a></div>
+  <p class="info-disclaimer">これは個人が整理した<strong>非公式</strong>のタイムテーブルです。出演時間などは必ず<strong>公式発表</strong>をご確認ください。</p>
   <button type="button" class="info-close" id="infoClose">閉じる</button>
 </aside>
 
