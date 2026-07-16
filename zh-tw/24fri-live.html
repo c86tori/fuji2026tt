@@ -147,6 +147,31 @@
       .info-links a:last-child{background:#ece7dd;color:#111}
       .info-close{width:100%;margin-top:12px;min-height:44px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer}
     }
+
+    /* ===== mobile: floating zoom control ===== */
+    .zoomctl{display:none}
+    @media(max-width:680px){
+      .zoomctl{
+        display:flex;flex-direction:column;align-items:stretch;
+        position:fixed;right:12px;z-index:55;
+        bottom:calc(76px + env(safe-area-inset-bottom));
+        background:rgba(255,254,249,.93);
+        -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+        border:1px solid var(--line);border-radius:14px;
+        box-shadow:0 8px 22px rgba(35,28,20,.22);overflow:hidden;
+      }
+      .zoomctl .zbtn{
+        width:46px;height:42px;border:0;background:transparent;color:var(--ink);
+        font-size:23px;font-weight:900;line-height:1;cursor:pointer;font-family:inherit;
+        display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;
+      }
+      .zoomctl .zbtn:active{background:rgba(0,0,0,.07)}
+      .zoomctl .zbtn:disabled{opacity:.32;cursor:default}
+      .zoomctl .zlabel{
+        text-align:center;font-size:9px;font-weight:900;color:var(--muted);
+        padding:3px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);letter-spacing:.02em;
+      }
+    }
 </style>
 </head>
 <body data-day-label="24 FRI" data-start-utc="2026-07-24T00:00:00Z" data-end-utc="2026-07-24T20:00:00Z">
@@ -377,6 +402,12 @@
   })();
 </script>
 
+<div class="zoomctl" role="group" aria-label="縮放" data-fit-label="全部">
+  <button type="button" class="zbtn" id="zoomIn" aria-label="放大">＋</button>
+  <span class="zlabel" id="zoomLabel" aria-hidden="true">100%</span>
+  <button type="button" class="zbtn" id="zoomOut" aria-label="縮小">−</button>
+</div>
+
 <nav class="mbar" aria-label="選單">
   <div class="day-switch" aria-label="切換日期">
     <a data-day="fri" href="24fri-live.html" class="is-current" aria-current="page">24<span>FRI</span></a>
@@ -428,6 +459,38 @@
     if(btn) btn.addEventListener('click', function(){ open(!sheet.classList.contains('open')); });
     if(closeBtn) closeBtn.addEventListener('click', function(){ open(false); });
     if(back) back.addEventListener('click', function(){ open(false); });
+  })();
+</script>
+
+<script>
+  (function(){
+    var viewer=document.querySelector('.viewer'), sheet=document.querySelector('.sheet');
+    var ctl=document.querySelector('.zoomctl');
+    var zin=document.getElementById('zoomIn'), zout=document.getElementById('zoomOut'), zlab=document.getElementById('zoomLabel');
+    if(!viewer||!sheet||!zin||!zout||!ctl) return;
+    var BASE=1100, KEY='fuji2026-zoom-v1', FIT=ctl.getAttribute('data-fit-label')||'FIT';
+    var LEVELS=['fit',75,100,150,200];
+    var idx=2;
+    var saved=localStorage.getItem(KEY);
+    if(saved!==null){ var want=(saved==='fit')?'fit':parseInt(saved,10); var si=LEVELS.indexOf(want); if(si>=0) idx=si; }
+    function widthFor(level){ return (level==='fit') ? viewer.clientWidth : Math.round(BASE*(level/100)); }
+    function apply(save){
+      if(!window.matchMedia('(max-width:680px)').matches){ sheet.style.width=''; return; }
+      var level=LEVELS[idx];
+      var prevW=sheet.offsetWidth||viewer.clientWidth;
+      var centre=(viewer.scrollLeft+viewer.clientWidth/2)/prevW;
+      var w=widthFor(level);
+      sheet.style.width=w+'px';
+      viewer.scrollLeft=Math.max(0, centre*w - viewer.clientWidth/2);
+      if(zlab) zlab.textContent=(level==='fit')?FIT:level+'%';
+      zout.disabled=(idx<=0); zin.disabled=(idx>=LEVELS.length-1);
+      if(save!==false) localStorage.setItem(KEY, String(level));
+    }
+    zin.addEventListener('click', function(){ if(idx<LEVELS.length-1){ idx++; apply(); } });
+    zout.addEventListener('click', function(){ if(idx>0){ idx--; apply(); } });
+    var rt;
+    window.addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ apply(false); }, 150); });
+    apply(false);
   })();
 </script>
 </body>
