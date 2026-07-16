@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>25 SAT 現在時刻つきタイムテーブル</title>
+  <style>
+    :root {
+      --bg:#f7f5ef; --paper:#fffef9; --ink:#151515; --muted:#67625b; --line:#ded8cc; --orange:#f36b21; --shadow:0 16px 36px rgba(35,28,20,.10);
+      --stage-top: 7.58%; --stage-bottom: 96.13%;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,rgba(243,107,33,.08),transparent 260px),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,"Hiragino Sans","Yu Gothic",sans-serif;}
+    header,main,footer{width:min(1180px,100%);margin:0 auto;padding-left:18px;padding-right:18px}
+    header{padding-top:22px;padding-bottom:14px}
+    .top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:14px}
+    h1{margin:0;font-size:clamp(25px,5vw,54px);line-height:1;letter-spacing:-.055em;font-weight:1000;white-space:nowrap}
+    .sub{margin:8px 0 0;color:var(--muted);font-weight:750;line-height:1.6;font-size:14px}
+    .back{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 14px;border-radius:999px;background:#111;color:#fff;text-decoration:none;font-weight:1000;white-space:nowrap}
+    main{padding-top:16px;padding-bottom:40px}
+    .status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:13px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+    .status strong{font-size:18px}.status span{color:var(--muted);font-weight:750;font-size:13px;line-height:1.5}.status-right{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;text-align:right}.status-live-link{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:6px 10px;border-radius:999px;background:#111;color:#fff;text-decoration:none;font-size:12px;font-weight:1000;white-space:nowrap}.status-live-link:hover,.status-live-link:focus-visible{outline:3px solid rgba(243,107,33,.22)}
+    .viewer{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:auto;box-shadow:var(--shadow)}
+    .sheet{position:relative;width:max(100%,1100px)}
+    .sheet img{display:block;width:100%;height:auto}
+    .now-line{position:absolute;left:0;right:0;top:calc(var(--stage-top) + (var(--line-progress,0) * (var(--stage-bottom) - var(--stage-top))));height:0;border-top:2px solid #e50012;filter:drop-shadow(0 .5px .5px rgba(0,0,0,.18));z-index:3;display:none;pointer-events:none}
+    .now-line::before{content:"現在時刻";position:absolute;left:8px;top:-18px;background:#e50012;color:#fff;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:1000;letter-spacing:.02em;white-space:nowrap}
+    .active .now-line{display:block}
+    .links{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 13px;border-radius:999px;background:#111;color:#fff;text-decoration:none;font-weight:1000;font-size:14px}.button.subbtn{background:#ece7dd;color:#111}
+    footer{color:var(--muted);text-align:center;font-size:12px;padding-bottom:30px;line-height:1.6}
+    @media(max-width:680px){header,main,footer{padding-left:14px;padding-right:14px}.top{display:block}h1{font-size:clamp(20px,6.4vw,32px);letter-spacing:-.05em}.back{margin-top:12px;width:100%}.sheet{width:1100px}.status strong{font-size:16px}.status-right{width:100%;justify-content:space-between;text-align:left}.status-live-link{font-size:11px;padding:6px 9px}}
+
+    .pick-help{margin:0 0 9px;color:var(--muted);font-size:11px;line-height:1.4;font-weight:400;text-align:left}
+    .pick-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
+    .pick-cell{position:absolute;border:1px solid transparent;border-radius:5px;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:2px 3px;line-height:1.12;font-size:clamp(7px,.72vw,11px);font-weight:900;letter-spacing:-.03em;overflow:hidden;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;transition:background-color .12s ease,border-color .12s ease,box-shadow .12s ease}
+    .pick-cell span{opacity:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+    .pick-cell.is-picked{background:var(--pick-color,rgba(18,18,18,.78));border-color:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22),0 1px 4px rgba(0,0,0,.18)}
+    .pick-cell.is-picked span{opacity:1}
+    @media(hover:hover){.pick-cell:hover{border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.08)}.pick-cell.is-picked:hover{background:var(--pick-color-hover,var(--pick-color,rgba(18,18,18,.84)))}}
+    @media(max-width:680px){.pick-help{font-size:11px}.pick-cell{font-size:9px}}
+    @media (max-width: 820px) and (orientation: portrait){.pick-cell{font-size:8px;border-radius:3px}}
+
+
+    @media (max-width: 820px) {
+      .pick-help{
+        margin:0 0 6px;
+        padding:0;
+        border:0;
+        border-radius:0;
+        background:transparent;
+        color:var(--muted);
+        font-size:10px;
+        line-height:1.3;
+        font-weight:400;
+        text-align:left;
+      }
+    }
+
+    /* --- pick highlight: 3 levels (highlight / gold / rainbow) --- */
+    .pick-cell span{position:relative;z-index:1}
+    .pick-cell.is-gold{background:linear-gradient(135deg,#fff1b8,#f4c430 42%,#c8901a);border-color:rgba(255,246,204,.95);box-shadow:inset 0 0 0 1px rgba(120,80,0,.28),0 2px 9px rgba(198,144,26,.5)}
+    .pick-cell.is-gold span{color:#3a2a00;text-shadow:0 1px 1px rgba(255,255,255,.5)}
+    .pick-cell.is-rainbow{border-color:rgba(255,255,255,.95);background:linear-gradient(115deg,#ff3b3b,#ff9f1c,#ffe600,#3bd16f,#37b7ff,#8a5cff,#ff3bd0);background-size:280% 280%;animation:pickRainbow 3.2s linear infinite,pickGlow 1.7s ease-in-out infinite}
+    .pick-cell.is-rainbow span{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6),0 0 6px rgba(0,0,0,.35)}
+    .pick-cell.is-rainbow::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.85) 50%,transparent 66%);background-size:220% 100%;mix-blend-mode:screen;pointer-events:none;animation:pickSheen 2.4s linear infinite}
+    @keyframes pickRainbow{0%{background-position:0% 50%}100%{background-position:280% 50%}}
+    @keyframes pickGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),0 0 6px rgba(255,255,255,.5)}50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),0 0 16px rgba(255,255,255,.9),0 0 26px rgba(120,180,255,.7)}}
+    @keyframes pickSheen{0%{background-position:220% 0}100%{background-position:-220% 0}}
+    @media(hover:hover){.pick-cell.is-gold:hover{background:linear-gradient(135deg,#fff6cc,#f8cc3e 42%,#d69a1e)}.pick-cell.is-rainbow:hover{background:linear-gradient(115deg,#ff3b3b,#ff9f1c,#ffe600,#3bd16f,#37b7ff,#8a5cff,#ff3bd0);background-size:280% 280%}}
+    @media(prefers-reduced-motion:reduce){.pick-cell.is-rainbow{animation:none;background-size:100% 100%}.pick-cell.is-rainbow::after{animation:none;opacity:.4}}
+
+    /* --- day switcher --- */
+    .day-switch{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px;gap:3px;box-shadow:0 6px 16px rgba(35,28,20,.08)}
+    .day-switch a{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:46px;padding:6px 12px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:1000;font-size:15px;line-height:1;letter-spacing:-.02em;transition:background-color .15s ease,color .15s ease}
+    .day-switch a>span{font-size:9px;letter-spacing:.1em;font-weight:900;opacity:.75}
+    .day-switch a:hover{color:var(--ink);background:rgba(0,0,0,.045)}
+    .day-switch a.is-current{color:#fff}
+    .day-switch a.is-current>span{opacity:.92}
+    .day-switch a.is-current:hover{color:#fff}
+    .day-switch a[data-day="fri"].is-current{background:linear-gradient(135deg,#f36b21,#ff8a4b)}
+    .day-switch a[data-day="sat"].is-current{background:linear-gradient(135deg,#2387c8,#49aee8)}
+    .day-switch a[data-day="sun"].is-current{background:linear-gradient(135deg,#e83f32,#ff6b4a)}
+    .head-actions{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+    @media(max-width:680px){.head-actions{align-items:stretch;gap:9px}.day-switch{width:100%;justify-content:space-between}.day-switch a{flex:1;min-width:0}}
+
+    /* --- focus dim mode: keeps picks vivid, fades everything else to light gray --- */
+    .sheet img{transition:filter .2s ease}
+    .sheet.dim-on img:not(.hdr-seg){filter:grayscale(1) opacity(.4)}
+    .sheet img.hdr-seg{position:absolute;left:0;top:0;width:100%;height:auto;pointer-events:none;z-index:1;display:none}
+    .sheet.dim-on img.hdr-seg.on{display:block}
+    .focus-toggle{border:0;cursor:pointer;font-family:inherit}
+    .focus-toggle[aria-pressed="true"]{background:var(--orange);color:#fff}
+
+    /* ===== mobile: bottom toolbar + info sheet (phone only) ===== */
+    .mbar,.info-sheet,.info-backdrop{display:none}
+    @media(max-width:680px){
+      header,footer{display:none}
+      main{padding:8px 8px calc(env(safe-area-inset-bottom) + 68px)}
+      .status,.pick-help,.links{display:none}
+      .viewer{height:calc(100dvh - 84px);border-radius:14px}
+      .now-line::before{font-size:10px}
+
+      .mbar{
+        display:flex;align-items:stretch;gap:5px;
+        position:fixed;left:0;right:0;bottom:0;z-index:60;
+        padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+        background:rgba(255,254,249,.95);
+        -webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);
+        border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(35,28,20,.12);
+      }
+      .mbar .day-switch{width:auto;flex:1 1 auto;min-width:0;padding:3px;gap:2px;box-shadow:none}
+      .mbar .day-switch a{flex:1 1 0;min-width:0;padding:6px 2px;font-size:15px}
+      .mbar .day-switch a>span{font-size:8px}
+      .mbtn{
+        flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+        min-width:40px;padding:5px 4px;border:0;border-radius:13px;background:transparent;color:var(--ink);
+        text-decoration:none;font-family:inherit;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;
+      }
+      .mbtn .mi{font-size:17px;line-height:1;font-weight:700}
+      .mbtn .ml{font-size:9px;line-height:1;letter-spacing:.01em;color:var(--muted);white-space:nowrap}
+      .mbtn:active{background:rgba(0,0,0,.06)}
+      .mbtn.focus-toggle[aria-pressed="true"]{background:var(--orange)}
+      .mbtn.focus-toggle[aria-pressed="true"] .mi,.mbtn.focus-toggle[aria-pressed="true"] .ml{color:#fff}
+
+      .info-backdrop{display:block;position:fixed;inset:0;z-index:70;background:rgba(20,16,12,.42);opacity:0;pointer-events:none;transition:opacity .25s ease}
+      .info-backdrop.open{opacity:1;pointer-events:auto}
+      .info-sheet{
+        display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;
+        transform:translateY(101%);transition:transform .3s cubic-bezier(.22,1,.36,1);
+        background:var(--paper);border-radius:22px 22px 0 0;
+        padding:10px 20px calc(20px + env(safe-area-inset-bottom));
+        box-shadow:0 -18px 44px rgba(35,28,20,.26);max-height:84dvh;overflow:auto;
+      }
+      .info-sheet.open{transform:translateY(0)}
+      .info-grip{width:40px;height:5px;border-radius:999px;background:var(--line);margin:2px auto 14px}
+      .info-title{margin:0;font-size:22px;line-height:1.04;letter-spacing:-.035em;font-weight:1000}
+      .info-title small{display:block;margin-top:5px;font-size:11px;font-weight:900;letter-spacing:.14em;color:var(--orange)}
+      .info-desc{margin:13px 0 0;font-size:13.5px;line-height:1.7;color:var(--ink);font-weight:650}
+      .info-clock{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--line)}
+      .info-clock strong{display:block;font-size:16px;font-weight:1000}
+      .info-clock span{display:block;margin-top:3px;font-size:12px;color:var(--muted);font-weight:700;line-height:1.55}
+      .info-help{margin:14px 0 0;font-size:12.5px;line-height:1.65;color:var(--muted);font-weight:600}
+      .info-links{display:flex;gap:9px;margin:16px 0 2px}
+      .info-links a{flex:1;display:inline-flex;align-items:center;justify-content:center;min-height:46px;border-radius:999px;text-decoration:none;font-weight:1000;font-size:14px}
+      .info-links a:first-child{background:#111;color:#fff}
+      .info-links a:last-child{background:#ece7dd;color:#111}
+      .info-close{width:100%;margin-top:12px;min-height:44px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer}
+    }
+</style>
+</head>
+<body data-day-label="25 SAT" data-start-utc="2026-07-25T00:00:00Z" data-end-utc="2026-07-25T20:00:00Z">
+  <header>
+    <div class="top">
+      <div>
+        <h1>25 SAT / FUJI ROCK FESTIVAL '26</h1>
+        <p class="sub">09:00-29:00、10分刻み、ステージ別。赤線が現在時刻の位置を示します。</p>
+      </div>
+      <div class="head-actions">
+        <a class="back" href="index.html">トップへ戻る</a>
+        <nav class="day-switch" aria-label="日付を切り替え">
+          <a data-day="fri" href="24fri-live.html">24<span>FRI</span></a>
+          <a data-day="sat" href="25sat-live.html" class="is-current" aria-current="page">25<span>SAT</span></a>
+          <a data-day="sun" href="26sun-live.html">26<span>SUN</span></a>
+        </nav>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="status"><strong id="clockText">現在時刻</strong><div class="status-right"><span id="statusText">読み込み中です。</span><a class="status-live-link" href="25sat-landscape.html">横向きで見る（スマホ用）</a></div></div>
+    <p class="pick-help">タップするたびに ハイライト → ゴールド → レインボー と変化します。もう一度タップで解除。選択はこの端末に保存されます。</p>
+    <div class="viewer">
+      <div class="sheet">
+        <img src="assets/25sat.png" alt="25 SAT タイムテーブル">
+        <div class="now-line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="links"><button type="button" class="button focus-toggle" id="focusToggle" aria-pressed="false">選択以外を薄く</button><a class="button" href="assets/25sat.pdf">PDFを見る</a><a class="button subbtn" href="assets/25sat.csv">CSV</a></div>
+  </main>
+  <footer><p>個人用に整理した非公式タイムテーブルです。出演時間などは必ず公式発表も確認してください。</p></footer>
+
+<script>
+  const config = {
+    dayLabel: document.body.dataset.dayLabel,
+    startUtc: new Date(document.body.dataset.startUtc).getTime(),
+    endUtc: new Date(document.body.dataset.endUtc).getTime()
+  };
+  const viewer = document.querySelector('.viewer');
+  const sheet = document.querySelector('.sheet');
+  const line = document.querySelector('.now-line');
+  const statusText = document.querySelector('#statusText');
+  const clockText = document.querySelector('#clockText');
+
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function jstParts(date){
+    const parts = new Intl.DateTimeFormat('ja-JP',{
+      timeZone:'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+    }).formatToParts(date).reduce((acc,p)=>{ acc[p.type]=p.value; return acc; },{});
+    return parts;
+  }
+  function fmtJSTText(date){
+    const p = jstParts(date);
+    return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+  }
+  function dayStatusLabel(){
+    const p = jstParts(new Date(config.startUtc));
+    const dayName = config.dayLabel.replace(/^\d+\s*/, '');
+    return `${Number(p.month)}/${Number(p.day)} ${dayName}`;
+  }
+  function getDisplayNow(){
+    const params = new URLSearchParams(window.location.search);
+    const test = params.get('test');
+    if (!test) return { date: new Date(), isTest: false };
+
+    // テスト用。例: ?test=2026-07-24T12:30
+    // タイムゾーン未指定の場合は、日本時間（+09:00）として扱います。
+    let value = test.trim().replace(' ', 'T');
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) value += ':00+09:00';
+    else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(value)) value += '+09:00';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return { date: new Date(), isTest: false, invalid: true };
+    return { date, isTest: true };
+  }
+
+  function update(){
+    const displayNow = getDisplayNow();
+    const now = displayNow.date;
+    const t = now.getTime();
+
+    if (displayNow.invalid) {
+      clockText.textContent = '現在時刻 ' + fmtJSTText(new Date()) + '（JST）';
+      statusText.textContent = 'testの日時形式を確認してください。例: ?test=2026-07-24T12:30';
+      viewer.classList.remove('active');
+      return;
+    }
+
+    clockText.textContent = (displayNow.isTest ? 'テスト時刻 ' : '現在時刻 ') + fmtJSTText(now) + '（JST）';
+    if (t < config.startUtc || t > config.endUtc) {
+      viewer.classList.remove('active');
+      statusText.textContent = dayStatusLabel() + ' の09:00-29:00に赤線が表示されます。';
+      return;
+    }
+    const p = Math.max(0, Math.min(1, (t - config.startUtc) / (config.endUtc - config.startUtc)));
+    sheet.style.setProperty('--line-progress', p.toFixed(6));
+    viewer.classList.add('active');
+    statusText.textContent = displayNow.isTest ? dayStatusLabel() + ' のテスト位置を表示中です。' : dayStatusLabel() + ' の現在位置を表示中です。';
+  }
+  update();
+  setInterval(update, 30000);
+</script>
+
+
+<script>
+  const pickItems = [{"id":"25sat-0-GREEN STAGE-11:00-Bialystocks","stage":"GREEN STAGE","start":"11:00","end":"12:00","artist":"Bialystocks","left":7.2121,"top":16.4753,"width":6.699,"height":4.3469},{"id":"25sat-1-GREEN STAGE-13:00-Trueno","stage":"GREEN STAGE","start":"13:00","end":"14:00","artist":"Trueno","left":7.2121,"top":25.3303,"width":6.699,"height":4.3469},{"id":"25sat-2-GREEN STAGE-15:00-IO","stage":"GREEN STAGE","start":"15:00","end":"16:00","artist":"IO","left":7.2121,"top":34.1853,"width":6.699,"height":4.3469},{"id":"25sat-3-GREEN STAGE-17:00-BASEMENT JAXX","stage":"GREEN STAGE","start":"17:00","end":"18:00","artist":"BASEMENT JAXX","left":7.2121,"top":43.0403,"width":6.699,"height":4.3469},{"id":"25sat-4-GREEN STAGE-19:00-Fujii Kaze","stage":"GREEN STAGE","start":"19:00","end":"20:10","artist":"Fujii Kaze","left":7.2121,"top":51.8953,"width":6.699,"height":5.0848},{"id":"25sat-5-GREEN STAGE-21:10-KHRUANGBIN","stage":"GREEN STAGE","start":"21:10","end":"22:40","artist":"KHRUANGBIN","left":7.2121,"top":61.4882,"width":6.699,"height":6.5606},{"id":"25sat-6-WHITE STAGE-12:10-Riddim Saunter","stage":"WHITE STAGE","start":"12:10","end":"13:00","artist":"Riddim Saunter","left":14.1676,"top":21.6407,"width":6.699,"height":3.6089},{"id":"25sat-7-WHITE STAGE-13:50-BOHEMIAN BETYARS","stage":"WHITE STAGE","start":"13:50","end":"14:40","artist":"BOHEMIAN BETYARS","left":14.1676,"top":29.0199,"width":6.699,"height":3.6089},{"id":"25sat-8-WHITE STAGE-15:30-Kroi","stage":"WHITE STAGE","start":"15:30","end":"16:30","artist":"Kroi","left":14.1676,"top":36.3991,"width":6.699,"height":4.3469},{"id":"25sat-9-WHITE STAGE-17:50-JOEY VALENCE & BRAE","stage":"WHITE STAGE","start":"17:50","end":"18:50","artist":"JOEY VALENCE & BRAE","left":14.1676,"top":46.7299,"width":6.699,"height":4.3469},{"id":"25sat-10-WHITE STAGE-19:50-XG","stage":"WHITE STAGE","start":"19:50","end":"20:50","artist":"XG","left":14.1676,"top":55.5849,"width":6.699,"height":4.3469},{"id":"25sat-11-WHITE STAGE-22:00-TOMORA","stage":"WHITE STAGE","start":"22:00","end":"23:15","artist":"TOMORA","left":14.1676,"top":65.1778,"width":6.699,"height":5.4537},{"id":"25sat-12-RED MARQUEE-10:20-ブランデー戦記","stage":"RED MARQUEE","start":"10:20","end":"11:00","artist":"ブランデー戦記","left":21.1231,"top":13.5237,"width":6.699,"height":2.871},{"id":"25sat-13-RED MARQUEE-11:30-SIX LOUNGE","stage":"RED MARQUEE","start":"11:30","end":"12:10","artist":"SIX LOUNGE","left":21.1231,"top":18.6891,"width":6.699,"height":2.871},{"id":"25sat-14-RED MARQUEE-12:40-QUADECA","stage":"RED MARQUEE","start":"12:40","end":"13:30","artist":"QUADECA","left":21.1231,"top":23.8545,"width":6.699,"height":3.6089},{"id":"25sat-15-RED MARQUEE-14:00-THE BETHS","stage":"RED MARQUEE","start":"14:00","end":"15:00","artist":"THE BETHS","left":21.1231,"top":29.7578,"width":6.699,"height":4.3469},{"id":"25sat-16-RED MARQUEE-16:00-cero","stage":"RED MARQUEE","start":"16:00","end":"17:00","artist":"cero","left":21.1231,"top":38.6128,"width":6.699,"height":4.3469},{"id":"25sat-17-RED MARQUEE-18:00-THURSTON MOORE GROUP","stage":"RED MARQUEE","start":"18:00","end":"19:00","artist":"THURSTON MOORE GROUP","left":21.1231,"top":47.4678,"width":6.699,"height":4.3469},{"id":"25sat-18-RED MARQUEE-20:10-サニーデイ・サービス","stage":"RED MARQUEE","start":"20:10","end":"21:10","artist":"サニーデイ・サービス","left":21.1231,"top":57.0607,"width":6.699,"height":4.3469},{"id":"25sat-19-RED MARQUEE-23:30-唾奇","stage":"RED MARQUEE","start":"23:30","end":"24:20","artist":"唾奇","left":21.1231,"top":71.8191,"width":6.699,"height":3.6089},{"id":"25sat-20-RED MARQUEE-24:30-KELLY LEE OWENS (DJ)","stage":"RED MARQUEE","start":"24:30","end":"26:00","artist":"KELLY LEE OWENS (DJ)","left":21.1231,"top":76.2466,"width":6.699,"height":6.5606},{"id":"25sat-21-RED MARQUEE-26:00-Weval DJ Set","stage":"RED MARQUEE","start":"26:00","end":"27:30","artist":"Weval DJ Set","left":21.1231,"top":82.8878,"width":6.699,"height":6.5606},{"id":"25sat-22-RED MARQUEE-27:30-Soichi Terada","stage":"RED MARQUEE","start":"27:30","end":"29:00","artist":"Soichi Terada","left":21.1231,"top":89.5291,"width":6.699,"height":6.5606},{"id":"25sat-23-FIELD OF HEAVEN-11:10-柴田聡子(BAND SET)","stage":"FIELD OF HEAVEN","start":"11:10","end":"12:00","artist":"柴田聡子(BAND SET)","left":28.0787,"top":17.2132,"width":6.699,"height":3.6089},{"id":"25sat-24-FIELD OF HEAVEN-12:50-YUUF","stage":"FIELD OF HEAVEN","start":"12:50","end":"13:50","artist":"YUUF","left":28.0787,"top":24.5924,"width":6.699,"height":4.3469},{"id":"25sat-25-FIELD OF HEAVEN-14:40-LA LOM","stage":"FIELD OF HEAVEN","start":"14:40","end":"15:40","artist":"LA LOM","left":28.0787,"top":32.7095,"width":6.699,"height":4.3469},{"id":"25sat-26-FIELD OF HEAVEN-16:40-OAU","stage":"FIELD OF HEAVEN","start":"16:40","end":"17:40","artist":"OAU","left":28.0787,"top":41.5645,"width":6.699,"height":4.3469},{"id":"25sat-27-FIELD OF HEAVEN-18:30-KOKOROKO","stage":"FIELD OF HEAVEN","start":"18:30","end":"19:40","artist":"KOKOROKO","left":28.0787,"top":49.6816,"width":6.699,"height":5.0848},{"id":"25sat-28-FIELD OF HEAVEN-20:30-BADBADNOTGOOD","stage":"FIELD OF HEAVEN","start":"20:30","end":"22:00","artist":"BADBADNOTGOOD","left":28.0787,"top":58.5366,"width":6.699,"height":6.5606},{"id":"25sat-29-ORANGE ECHO-10:50-来島エル","stage":"ORANGE ECHO","start":"10:50","end":"11:30","artist":"来島エル","left":35.0342,"top":15.7374,"width":6.699,"height":2.871},{"id":"25sat-30-ORANGE ECHO-12:15-タデクイ","stage":"ORANGE ECHO","start":"12:15","end":"12:55","artist":"タデクイ","left":35.0342,"top":22.0097,"width":6.699,"height":2.871},{"id":"25sat-31-ORANGE ECHO-13:50-neco眠る","stage":"ORANGE ECHO","start":"13:50","end":"14:30","artist":"neco眠る","left":35.0342,"top":29.0199,"width":6.699,"height":2.871},{"id":"25sat-32-ORANGE ECHO-15:40-CADEJO","stage":"ORANGE ECHO","start":"15:40","end":"16:20","artist":"CADEJO","left":35.0342,"top":37.137,"width":6.699,"height":2.871},{"id":"25sat-33-ORANGE ECHO-17:50-DMBQ","stage":"ORANGE ECHO","start":"17:50","end":"18:30","artist":"DMBQ","left":35.0342,"top":46.7299,"width":6.699,"height":2.871},{"id":"25sat-34-ORANGE ECHO-19:50-Bongjeingan","stage":"ORANGE ECHO","start":"19:50","end":"20:30","artist":"Bongjeingan","left":35.0342,"top":55.5849,"width":6.699,"height":2.871},{"id":"25sat-35-GYPSY AVALON-11:00-ケロポンズ","stage":"GYPSY AVALON","start":"11:00","end":"12:00","artist":"ケロポンズ","left":41.9897,"top":16.4753,"width":6.699,"height":4.3469},{"id":"25sat-36-GYPSY AVALON-13:00-MASH弦楽団","stage":"GYPSY AVALON","start":"13:00","end":"13:50","artist":"MASH弦楽団","left":41.9897,"top":25.3303,"width":6.699,"height":3.6089},{"id":"25sat-37-GYPSY AVALON-14:40-アトミック・カフェ トーク【福島事故から15年】","stage":"GYPSY AVALON","start":"14:40","end":"15:20","artist":"アトミック・カフェ トーク【福島事故から15年】","left":41.9897,"top":32.7095,"width":6.699,"height":2.871},{"id":"25sat-38-GYPSY AVALON-16:30-梅井美咲","stage":"GYPSY AVALON","start":"16:30","end":"17:20","artist":"梅井美咲","left":41.9897,"top":40.8266,"width":6.699,"height":3.6089},{"id":"25sat-39-GYPSY AVALON-18:50-中西レモン＆すずめのティアーズ","stage":"GYPSY AVALON","start":"18:50","end":"19:40","artist":"中西レモン＆すずめのティアーズ","left":41.9897,"top":51.1574,"width":6.699,"height":3.6089},{"id":"25sat-40-GYPSY AVALON-20:50-jizue","stage":"GYPSY AVALON","start":"20:50","end":"21:50","artist":"jizue","left":41.9897,"top":60.0124,"width":6.699,"height":4.3469},{"id":"25sat-41-CRYSTAL PALACE TENT-22:30-BABY SOUL","stage":"CRYSTAL PALACE TENT","start":"22:30","end":"23:45","artist":"BABY SOUL","left":48.9453,"top":67.3916,"width":6.699,"height":5.4537},{"id":"25sat-42-CRYSTAL PALACE TENT-23:45-STOMPIN' RIFFRAFFS","stage":"CRYSTAL PALACE TENT","start":"23:45","end":"24:30","artist":"STOMPIN' RIFFRAFFS","left":48.9453,"top":72.9259,"width":6.699,"height":3.24},{"id":"25sat-43-CRYSTAL PALACE TENT-24:30-GAZ MAYALL","stage":"CRYSTAL PALACE TENT","start":"24:30","end":"25:30","artist":"GAZ MAYALL","left":48.9453,"top":76.2466,"width":6.699,"height":4.3469},{"id":"25sat-44-CRYSTAL PALACE TENT-25:30-THE KING LION","stage":"CRYSTAL PALACE TENT","start":"25:30","end":"26:15","artist":"THE KING LION","left":48.9453,"top":80.6741,"width":6.699,"height":3.24},{"id":"25sat-45-CRYSTAL PALACE TENT-26:15-KING NABE","stage":"CRYSTAL PALACE TENT","start":"26:15","end":"27:15","artist":"KING NABE","left":48.9453,"top":83.9947,"width":6.699,"height":4.3469},{"id":"25sat-46-CRYSTAL PALACE TENT-27:15-ZIONHILL SESSION","stage":"CRYSTAL PALACE TENT","start":"27:15","end":"28:00","artist":"ZIONHILL SESSION","left":48.9453,"top":88.4222,"width":6.699,"height":3.24},{"id":"25sat-47-CRYSTAL PALACE TENT-28:00-RUBY FLASHMAN","stage":"CRYSTAL PALACE TENT","start":"28:00","end":"29:00","artist":"RUBY FLASHMAN","left":48.9453,"top":91.7428,"width":6.699,"height":4.3469},{"id":"25sat-48-PALACE ARENA-24:30-SAKURA CIRCUS","stage":"PALACE ARENA","start":"24:30","end":"24:45","artist":"SAKURA CIRCUS","left":55.9008,"top":76.2466,"width":6.699,"height":1.0262},{"id":"25sat-49-PALACE ARENA-25:30-SAKURA CIRCUS","stage":"PALACE ARENA","start":"25:30","end":"25:45","artist":"SAKURA CIRCUS","left":55.9008,"top":80.6741,"width":6.699,"height":1.0262},{"id":"25sat-50-PALACE ARENA-26:30-SAKURA CIRCUS","stage":"PALACE ARENA","start":"26:30","end":"26:45","artist":"SAKURA CIRCUS","left":55.9008,"top":85.1016,"width":6.699,"height":1.0262},{"id":"25sat-51-ROOKIE A GO-GO-22:00-A_Root同根生","stage":"ROOKIE A GO-GO","start":"22:00","end":"22:30","artist":"A_Root同根生","left":62.8563,"top":65.1778,"width":6.699,"height":2.1331},{"id":"25sat-52-ROOKIE A GO-GO-23:00-mayu","stage":"ROOKIE A GO-GO","start":"23:00","end":"23:30","artist":"mayu","left":62.8563,"top":69.6053,"width":6.699,"height":2.1331},{"id":"25sat-53-ROOKIE A GO-GO-24:00-日髙晴野","stage":"ROOKIE A GO-GO","start":"24:00","end":"24:30","artist":"日髙晴野","left":62.8563,"top":74.0328,"width":6.699,"height":2.1331},{"id":"25sat-54-ROOKIE A GO-GO-25:00-Tocago","stage":"ROOKIE A GO-GO","start":"25:00","end":"25:30","artist":"Tocago","left":62.8563,"top":78.4603,"width":6.699,"height":2.1331},{"id":"25sat-55-ROOKIE A GO-GO-26:00-猿臂","stage":"ROOKIE A GO-GO","start":"26:00","end":"26:30","artist":"猿臂","left":62.8563,"top":82.8878,"width":6.699,"height":2.1331},{"id":"25sat-56-ROOKIE A GO-GO-27:00-二兆円","stage":"ROOKIE A GO-GO","start":"27:00","end":"27:30","artist":"二兆円","left":62.8563,"top":87.3153,"width":6.699,"height":2.1331},{"id":"25sat-57-苗場食堂-12:10-Za SAVAGE","stage":"苗場食堂","start":"12:10","end":"12:50","artist":"Za SAVAGE","left":69.8119,"top":21.6407,"width":6.699,"height":2.871},{"id":"25sat-58-苗場食堂-13:30-寺久保伶矢","stage":"苗場食堂","start":"13:30","end":"14:10","artist":"寺久保伶矢","left":69.8119,"top":27.5441,"width":6.699,"height":2.871},{"id":"25sat-59-苗場食堂-15:10-NONE THE WiSER","stage":"苗場食堂","start":"15:10","end":"15:50","artist":"NONE THE WiSER","left":69.8119,"top":34.9232,"width":6.699,"height":2.871},{"id":"25sat-60-苗場食堂-17:10-ANIEKY A GO GO ! BAND","stage":"苗場食堂","start":"17:10","end":"17:50","artist":"ANIEKY A GO GO ! BAND","left":69.8119,"top":43.7782,"width":6.699,"height":2.871},{"id":"25sat-61-苗場食堂-19:10-苗場音楽突撃隊","stage":"苗場食堂","start":"19:10","end":"19:50","artist":"苗場音楽突撃隊","left":69.8119,"top":52.6332,"width":6.699,"height":2.871},{"id":"25sat-62-苗場食堂-21:10-the Tiger","stage":"苗場食堂","start":"21:10","end":"21:50","artist":"the Tiger","left":69.8119,"top":61.4882,"width":6.699,"height":2.871},{"id":"25sat-63-苗場食堂-22:45-HOT DOG EXPRESS","stage":"苗場食堂","start":"22:45","end":"23:25","artist":"HOT DOG EXPRESS","left":69.8119,"top":68.4984,"width":6.699,"height":2.871},{"id":"25sat-64-PYRAMID GARDEN-08:30-ヨガワークショップ / 渋木さやか","stage":"PYRAMID GARDEN","start":"08:30","end":"09:20","artist":"ヨガワークショップ / 渋木さやか","left":76.7674,"top":5.4066,"width":6.699,"height":3.6089},{"id":"25sat-65-PYRAMID GARDEN-09:40-GOMA","stage":"PYRAMID GARDEN","start":"09:40","end":"10:40","artist":"GOMA","left":76.7674,"top":10.572,"width":6.699,"height":4.3469},{"id":"25sat-66-PYRAMID GARDEN-11:30-Michael Kaneko","stage":"PYRAMID GARDEN","start":"11:30","end":"12:30","artist":"Michael Kaneko","left":76.7674,"top":18.6891,"width":6.699,"height":4.3469},{"id":"25sat-67-PYRAMID GARDEN-16:30-YOSHIROTTEN","stage":"PYRAMID GARDEN","start":"16:30","end":"19:30","artist":"YOSHIROTTEN","left":76.7674,"top":40.8266,"width":6.699,"height":13.2019},{"id":"25sat-68-PYRAMID GARDEN-19:30-AOIZO","stage":"PYRAMID GARDEN","start":"19:30","end":"20:30","artist":"AOIZO","left":76.7674,"top":54.1091,"width":6.699,"height":4.3469},{"id":"25sat-69-PYRAMID GARDEN-20:30-BAKU (KAIKOO)","stage":"PYRAMID GARDEN","start":"20:30","end":"22:00","artist":"BAKU (KAIKOO)","left":76.7674,"top":58.5366,"width":6.699,"height":6.5606},{"id":"25sat-70-PYRAMID GARDEN-23:00-ずっと真夜中でいいのに。(スパイシーズ状態)","stage":"PYRAMID GARDEN","start":"23:00","end":"24:00","artist":"ずっと真夜中でいいのに。(スパイシーズ状態)","left":76.7674,"top":69.6053,"width":6.699,"height":4.3469},{"id":"25sat-71-PYRAMID GARDEN-24:50-SILENT POETS（DUB ENSEMBLE)","stage":"PYRAMID GARDEN","start":"24:50","end":"25:50","artist":"SILENT POETS（DUB ENSEMBLE)","left":76.7674,"top":77.7224,"width":6.699,"height":4.3469},{"id":"25sat-72-GAN-BAN SQUARE-23:30-AAAMYYY (Tempalay)","stage":"GAN-BAN SQUARE","start":"23:30","end":"24:30","artist":"AAAMYYY (Tempalay)","left":83.7229,"top":71.8191,"width":6.699,"height":4.3469},{"id":"25sat-73-GAN-BAN SQUARE-24:30-MONJOE","stage":"GAN-BAN SQUARE","start":"24:30","end":"26:00","artist":"MONJOE","left":83.7229,"top":76.2466,"width":6.699,"height":6.5606},{"id":"25sat-74-GAN-BAN SQUARE-26:00-O.N.O (THA BLUE HERB)","stage":"GAN-BAN SQUARE","start":"26:00","end":"26:45","artist":"O.N.O (THA BLUE HERB)","left":83.7229,"top":82.8878,"width":6.699,"height":3.24},{"id":"25sat-75-GAN-BAN SQUARE-26:45-MaL a.k.a. Primal Dub","stage":"GAN-BAN SQUARE","start":"26:45","end":"27:45","artist":"MaL a.k.a. Primal Dub","left":83.7229,"top":86.2084,"width":6.699,"height":4.3469},{"id":"25sat-76-GAN-BAN SQUARE-27:45-Lomax(NC4K)","stage":"GAN-BAN SQUARE","start":"27:45","end":"29:00","artist":"Lomax(NC4K)","left":83.7229,"top":90.6359,"width":6.699,"height":5.4537},{"id":"25sat-77-BLUE GALAXY-12:50-DJ JIM","stage":"BLUE GALAXY","start":"12:50","end":"14:00","artist":"DJ JIM","left":90.6784,"top":24.5924,"width":6.699,"height":5.0848},{"id":"25sat-78-BLUE GALAXY-14:00-DJ GONCHAN","stage":"BLUE GALAXY","start":"14:00","end":"14:50","artist":"DJ GONCHAN","left":90.6784,"top":29.7578,"width":6.699,"height":3.6089},{"id":"25sat-79-BLUE GALAXY-14:50-NORTH KANTO REBEL SOUND CLASH","stage":"BLUE GALAXY","start":"14:50","end":"15:30","artist":"NORTH KANTO REBEL SOUND CLASH","left":90.6784,"top":33.4474,"width":6.699,"height":2.871},{"id":"25sat-80-BLUE GALAXY-15:30-JAPAN CUMBIA FESTIVAL DJs","stage":"BLUE GALAXY","start":"15:30","end":"16:20","artist":"JAPAN CUMBIA FESTIVAL DJs","left":90.6784,"top":36.3991,"width":6.699,"height":3.6089},{"id":"25sat-81-BLUE GALAXY-16:20-FUMINN","stage":"BLUE GALAXY","start":"16:20","end":"17:10","artist":"FUMINN","left":90.6784,"top":40.0887,"width":6.699,"height":3.6089},{"id":"25sat-82-BLUE GALAXY-17:10-TXAKO","stage":"BLUE GALAXY","start":"17:10","end":"18:00","artist":"TXAKO","left":90.6784,"top":43.7782,"width":6.699,"height":3.6089},{"id":"25sat-83-BLUE GALAXY-18:00-DJ TOMMY","stage":"BLUE GALAXY","start":"18:00","end":"18:50","artist":"DJ TOMMY","left":90.6784,"top":47.4678,"width":6.699,"height":3.6089},{"id":"25sat-84-BLUE GALAXY-18:50-CLUB SKA","stage":"BLUE GALAXY","start":"18:50","end":"21:20","artist":"CLUB SKA","left":90.6784,"top":51.1574,"width":6.699,"height":10.9881},{"id":"25sat-85-BLUE GALAXY-21:20-SPECIAL GUEST","stage":"BLUE GALAXY","start":"21:20","end":"22:00","artist":"SPECIAL GUEST","left":90.6784,"top":62.2262,"width":6.699,"height":2.871},{"id":"25sat-86-BLUE GALAXY-22:00-RIHO","stage":"BLUE GALAXY","start":"22:00","end":"23:00","artist":"RIHO","left":90.6784,"top":65.1778,"width":6.699,"height":4.3469},{"id":"25sat-87-BLUE GALAXY-23:00-DJ JIM","stage":"BLUE GALAXY","start":"23:00","end":"24:00","artist":"DJ JIM","left":90.6784,"top":69.6053,"width":6.699,"height":4.3469}];
+  (function(){
+    const sheetEl = document.querySelector('.sheet');
+    if (!sheetEl || !Array.isArray(pickItems)) return;
+    const day = (document.body.dataset.dayLabel || location.pathname).replace(/\s+/g,'-');
+    const storagePrefix = 'fuji2026-picks-v1:' + day + ':';
+    const stagePickColors = {
+      'GREEN STAGE':['rgba(28,115,62,.86)','rgba(20,96,50,.92)'],
+      'WHITE STAGE':['rgba(92,92,92,.86)','rgba(72,72,72,.92)'],
+      'RED MARQUEE':['rgba(196,38,42,.86)','rgba(170,28,34,.92)'],
+      'FIELD OF HEAVEN':['rgba(45,165,205,.88)','rgba(24,130,180,.94)'],
+      'ORANGE ECHO':['rgba(211,92,27,.88)','rgba(184,74,20,.94)'],
+      'GYPSY AVALON':['rgba(143,82,132,.88)','rgba(122,67,114,.94)'],
+      'CRYSTAL PALACE TENT':['rgba(34,132,132,.88)','rgba(24,111,111,.94)'],
+      'PALACE ARENA':['rgba(99,78,154,.88)','rgba(81,62,132,.94)'],
+      'ROOKIE A GO-GO':['rgba(45,45,45,.88)','rgba(28,28,28,.94)'],
+      '苗場食堂':['rgba(62,132,96,.88)','rgba(48,111,78,.94)'],
+      'PYRAMID GARDEN':['rgba(128,72,157,.88)','rgba(108,58,138,.94)'],
+      'GAN-BAN SQUARE':['rgba(190,57,55,.88)','rgba(162,43,43,.94)'],
+      'BLUE GALAXY':['rgba(35,95,172,.88)','rgba(26,76,148,.94)']
+    };
+    let layer = sheetEl.querySelector('.pick-layer');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'pick-layer';
+      sheetEl.appendChild(layer);
+    }
+    const PICK_MAX = 3;
+    function getLevel(id){ const v = parseInt(localStorage.getItem(storagePrefix + id), 10); return (v >= 1 && v <= PICK_MAX) ? v : 0; }
+    function setPicked(el, level){
+      el.classList.toggle('is-picked', level > 0);
+      el.classList.toggle('is-gold', level === 2);
+      el.classList.toggle('is-rainbow', level === 3);
+      el.setAttribute('aria-pressed', level > 0 ? 'true' : 'false');
+    }
+    pickItems.forEach(item => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'pick-cell';
+      el.style.left = item.left + '%';
+      el.style.top = item.top + '%';
+      el.style.width = item.width + '%';
+      el.style.height = item.height + '%';
+      el.title = item.artist + ' / ' + item.stage + ' / ' + item.start + '-' + item.end;
+      const stageColor = stagePickColors[item.stage] || ['rgba(18,18,18,.78)','rgba(18,18,18,.84)'];
+      el.style.setProperty('--pick-color', stageColor[0]);
+      el.style.setProperty('--pick-color-hover', stageColor[1]);
+      el.setAttribute('aria-label', el.title);
+      el.innerHTML = '<span>' + item.artist.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) + '</span>';
+      setPicked(el, getLevel(item.id));
+      el.addEventListener('click', () => {
+        const level = (getLevel(item.id) + 1) % (PICK_MAX + 1);
+        if (level) localStorage.setItem(storagePrefix + item.id, String(level));
+        else localStorage.removeItem(storagePrefix + item.id);
+        setPicked(el, level);
+      });
+      layer.appendChild(el);
+    });
+  })();
+</script>
+
+<script>
+  (function(){
+    var sheet = document.querySelector('.sheet');
+    if(!sheet) return;
+    var base = sheet.querySelector('img');
+    var KEY = 'fuji2026-dim-v1';
+    var STAGE_TOP = 7.58, TITLE_BOTTOM = 2.6;
+
+    // group pick cells into stage columns by their left offset
+    var cells = [].slice.call(sheet.querySelectorAll('.pick-cell'));
+    var cols = {};
+    cells.forEach(function(c){
+      var left = parseFloat(c.style.left), width = parseFloat(c.style.width);
+      if(isNaN(left)) return;
+      var key = left.toFixed(1);
+      if(!cols[key]) cols[key] = { left:left, width:width, cells:[] };
+      cols[key].cells.push(c);
+    });
+    var keys = Object.keys(cols);
+
+    // derive column pitch to pad segments up to the divider centre
+    var lefts = keys.map(function(k){ return cols[k].left; }).sort(function(a,b){ return a-b; });
+    var pitch = Infinity;
+    for(var i=1;i<lefts.length;i++){ var d = lefts[i]-lefts[i-1]; if(d>0 && d<pitch) pitch = d; }
+    var pad = (isFinite(pitch) ? Math.max(0,(pitch - cols[keys[0]].width)/2) : 0.12);
+
+    function mkSeg(clip){
+      var im = new Image();
+      im.src = base.currentSrc || base.src;
+      im.className = 'hdr-seg';
+      im.alt = ''; im.setAttribute('aria-hidden','true');
+      im.style.clipPath = clip;
+      sheet.appendChild(im);
+      return im;
+    }
+    // full-width title bar strip
+    var titleSeg = mkSeg('inset(0 0 ' + (100-TITLE_BOTTOM).toFixed(2) + '% 0)');
+    // one strip per stage column (stage-name band only)
+    keys.forEach(function(k){
+      var col = cols[k];
+      var l = Math.max(0, col.left - pad);
+      var r = Math.min(100, col.left + col.width + pad);
+      col.seg = mkSeg('inset(' + TITLE_BOTTOM + '% ' + (100-r).toFixed(2) + '% ' + (100-STAGE_TOP).toFixed(2) + '% ' + l.toFixed(2) + '%)');
+    });
+
+    function refresh(){
+      var any = false;
+      keys.forEach(function(k){
+        var picked = cols[k].cells.some(function(c){ return c.classList.contains('is-picked'); });
+        cols[k].seg.classList.toggle('on', picked);
+        if(picked) any = true;
+      });
+      titleSeg.classList.toggle('on', any);
+    }
+    function apply(on){ sheet.classList.toggle('dim-on', on); [].forEach.call(document.querySelectorAll('.focus-toggle'), function(b){ b.setAttribute('aria-pressed', on ? 'true' : 'false'); }); }
+
+    refresh();
+    apply(localStorage.getItem(KEY) === '1');
+
+    var layer = sheet.querySelector('.pick-layer');
+    if(layer) layer.addEventListener('click', function(e){ if(e.target.closest('.pick-cell')) setTimeout(refresh, 0); });
+    document.addEventListener('click', function(e){
+      if(!(e.target.closest && e.target.closest('.focus-toggle'))) return;
+      var on = !sheet.classList.contains('dim-on');
+      if(on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY);
+      apply(on);
+    });
+  })();
+</script>
+
+<nav class="mbar" aria-label="操作メニュー">
+  <div class="day-switch" aria-label="日付を切り替え">
+    <a data-day="fri" href="24fri-live.html">24<span>FRI</span></a>
+    <a data-day="sat" href="25sat-live.html" class="is-current" aria-current="page">25<span>SAT</span></a>
+    <a data-day="sun" href="26sun-live.html">26<span>SUN</span></a>
+  </div>
+  <a class="mbtn" href="index.html" aria-label="トップへ戻る"><span class="mi" aria-hidden="true">⌂</span><span class="ml">トップ</span></a>
+  <a class="mbtn" href="25sat-landscape.html" aria-label="横向きで見る"><span class="mi" aria-hidden="true">⤢</span><span class="ml">横向き</span></a>
+  <button type="button" class="mbtn focus-toggle" aria-pressed="false" aria-label="選択以外を薄く"><span class="mi" aria-hidden="true">◐</span><span class="ml">薄く</span></button>
+  <button type="button" class="mbtn" id="infoBtn" aria-expanded="false" aria-label="このページの説明"><span class="mi" aria-hidden="true">ⓘ</span><span class="ml">インフォ</span></button>
+</nav>
+
+<div class="info-backdrop" id="infoBackdrop"></div>
+<aside class="info-sheet" id="infoSheet" role="dialog" aria-modal="true" aria-label="このページの説明">
+  <div class="info-grip" aria-hidden="true"></div>
+  <h2 class="info-title">FUJI ROCK FESTIVAL '26<small>25 SAT タイムテーブル</small></h2>
+  <p class="info-desc">09:00-29:00、10分刻み、ステージ別。赤線が現在時刻の位置を示します。</p>
+  <div class="info-clock"><strong id="infoClock">—</strong><span id="infoStatus"></span></div>
+  <p class="info-help">タップするたびに ハイライト → ゴールド → レインボー と変化します。もう一度タップで解除。選択はこの端末に保存されます。</p>
+  <div class="info-links"><a href="assets/25sat.pdf">この日のPDFをみる</a><a href="assets/25sat.csv">CSV</a></div>
+  <button type="button" class="info-close" id="infoClose">閉じる</button>
+</aside>
+
+<script>
+  (function(){
+    function mirror(srcId, dstId){
+      var s=document.getElementById(srcId), d=document.getElementById(dstId);
+      if(!s||!d) return;
+      var sync=function(){ d.textContent=s.textContent; };
+      sync();
+      new MutationObserver(sync).observe(s,{childList:true,characterData:true,subtree:true});
+    }
+    mirror('clockText','infoClock');
+    mirror('statusText','infoStatus');
+
+    var sh=document.querySelector('.sheet');
+    if(sh){ var on=sh.classList.contains('dim-on');
+      [].forEach.call(document.querySelectorAll('.focus-toggle'), function(b){ b.setAttribute('aria-pressed', on?'true':'false'); }); }
+
+    var btn=document.getElementById('infoBtn'),
+        sheet=document.getElementById('infoSheet'),
+        back=document.getElementById('infoBackdrop'),
+        closeBtn=document.getElementById('infoClose');
+    function open(o){
+      if(sheet) sheet.classList.toggle('open',o);
+      if(back) back.classList.toggle('open',o);
+      if(btn) btn.setAttribute('aria-expanded', o?'true':'false');
+    }
+    if(btn) btn.addEventListener('click', function(){ open(!sheet.classList.contains('open')); });
+    if(closeBtn) closeBtn.addEventListener('click', function(){ open(false); });
+    if(back) back.addEventListener('click', function(){ open(false); });
+  })();
+</script>
+</body>
+</html>
