@@ -1,6 +1,6 @@
 /* FUJI '26 timetable — offline service worker.
    To publish updated content, bump CACHE (e.g. v1 -> v2). */
-const CACHE = 'fuji2026-v1';
+const CACHE = 'fuji2026-v2';
 
 const ASSETS = [
   './', 'index.html',
@@ -15,6 +15,7 @@ const ASSETS = [
   'assets/24fri.png', 'assets/25sat.png', 'assets/26sun.png',
   'assets/24fri.csv', 'assets/25sat.csv', 'assets/26sun.csv',
   'assets/icon-180.png', 'assets/icon-192.png', 'assets/icon-512.png',
+  'farewell-2027.js',
   'manifest.webmanifest'
 ];
 
