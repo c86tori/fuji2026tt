@@ -41,6 +41,62 @@
       color:#333;font-size:var(--floating-axis-font-size,8px);font-weight:900;line-height:1;
       letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap
     }
+    .pick-cell.has-artist-intro{
+      -webkit-touch-callout:none;-webkit-user-select:none;user-select:none
+    }
+    .artist-intro-layer{
+      position:fixed;inset:0;z-index:100;visibility:hidden;pointer-events:none;
+      transition:visibility 0s linear .38s
+    }
+    .artist-intro-layer.is-open{
+      visibility:visible;pointer-events:auto;transition-delay:0s
+    }
+    .artist-intro-backdrop{
+      position:absolute;inset:0;background:rgba(16,14,12,.48);
+      -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+      opacity:0;transition:opacity .28s ease
+    }
+    .artist-intro-layer.is-open .artist-intro-backdrop{opacity:1}
+    .artist-intro-sheet{
+      --artist-intro-accent:#f36b21;
+      position:absolute;left:50%;bottom:0;width:min(100%,680px);max-height:min(78dvh,720px);
+      overflow:auto;-webkit-overflow-scrolling:touch;
+      box-sizing:border-box;padding:12px 22px calc(24px + env(safe-area-inset-bottom));
+      border-radius:26px 26px 0 0;background:rgba(255,254,249,.97);color:#171512;
+      box-shadow:0 -20px 60px rgba(16,14,12,.26);
+      transform:translate3d(-50%,105%,0);
+      transition:transform .38s cubic-bezier(.22,1,.36,1)
+    }
+    .artist-intro-layer.is-open .artist-intro-sheet{transform:translate3d(-50%,0,0)}
+    .artist-intro-grip{
+      width:42px;height:5px;margin:0 auto 13px;border-radius:999px;background:#d7d1c8
+    }
+    .artist-intro-close{
+      position:absolute;top:14px;right:16px;width:38px;height:38px;padding:0;border:0;
+      border-radius:50%;background:#eee9e1;color:#28231e;font:700 23px/1 system-ui,sans-serif;
+      display:grid;place-items:center;cursor:pointer
+    }
+    .artist-intro-meta{
+      margin:0 48px 7px 0;color:var(--artist-intro-accent);font:800 12px/1.35 system-ui,sans-serif;
+      letter-spacing:.075em;text-transform:uppercase
+    }
+    .artist-intro-title{
+      margin:0 48px 14px 0;font:900 clamp(25px,7.3vw,38px)/1.16 system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;
+      letter-spacing:-.035em
+    }
+    .artist-intro-title::after{
+      content:"";display:block;width:58px;height:5px;margin-top:13px;border-radius:999px;
+      background:var(--artist-intro-accent)
+    }
+    .artist-intro-copy{
+      margin:0;color:#39342e;font:500 15px/1.88 system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;
+      letter-spacing:.015em
+    }
+    @media(max-height:500px){
+      .artist-intro-sheet{max-height:92dvh;padding-top:9px;padding-bottom:calc(15px + env(safe-area-inset-bottom))}
+      .artist-intro-grip{margin-bottom:8px}.artist-intro-title{font-size:25px;margin-bottom:10px}
+      .artist-intro-title::after{height:4px;margin-top:9px}.artist-intro-copy{font-size:14px;line-height:1.72}
+    }
     @media(max-width:680px){
       .viewer>.floating-time-axis-live{display:block}
     }
@@ -239,9 +295,121 @@
     window.addEventListener('resize',updateAxisSize);
   }
 
+  function initArtistIntros(){
+    var intros = {
+      '\u30c6\u30ec\u30d3\u5927\u9678\u97f3\u982d': {
+        title:'\u30c6\u30ec\u30d3\u5927\u9678\u97f3\u982d',
+        meta:'24 FRI \u00b7 RED MARQUEE \u00b7 11:10\u201311:50',
+        body:'\u672d\u5e4c\u3067\u7d50\u6210\u3055\u308c\u305f\u82e5\u304d4\u4eba\u7d44\u3002\u30dd\u30b9\u30c8\u30d1\u30f3\u30af\u306e\u92ed\u3044\u53cd\u5fa9\u3001\u5909\u5247\u7684\u306a\u30ea\u30ba\u30e0\u3001\u3080\u304d\u51fa\u3057\u306e\u30ce\u30a4\u30ba\u3092\u885d\u52d5\u7684\u306b\u9cf4\u3089\u3057\u306a\u304c\u3089\u3001\u4e0d\u610f\u306b\u8033\u306b\u6b8b\u308b\u6b4c\u3084\u30e1\u30ed\u30c7\u30a3\u3078\u7740\u5730\u3057\u307e\u3059\u3002\u6574\u3044\u3059\u304e\u3066\u3044\u306a\u3044\u6f14\u594f\u306e\u5371\u3046\u3055\u3068\u3001\u4f55\u304c\u8d77\u3053\u308b\u304b\u5206\u304b\u3089\u306a\u3044\u7dca\u5f35\u611f\u304c\u9b45\u529b\u3002ROOKIE A GO-GO\u304b\u3089\u89b3\u5ba2\u306e\u652f\u6301\u3092\u5f97\u3066RED MARQUEE\u3078\u9032\u3093\u3060\u3001\u73fe\u5728\u306e\u65e5\u672c\u306e\u82e5\u624b\u30aa\u30eb\u30bf\u30ca\u30c6\u30a3\u30d6\u3092\u8c61\u5fb4\u3059\u308b\u5b58\u5728\u3067\u3059\u3002'
+      }
+    };
+    var cells = [].slice.call(sheet.querySelectorAll('.pick-cell'));
+    var targets = cells.map(function(cell){
+      var name = cell.querySelector('span');
+      var intro = name ? intros[name.textContent.trim()] : null;
+      return intro ? {cell:cell,intro:intro} : null;
+    }).filter(Boolean);
+    if (!targets.length) return;
+
+    var layer = document.createElement('div');
+    layer.className = 'artist-intro-layer';
+    layer.setAttribute('aria-hidden','true');
+    layer.innerHTML = '<div class="artist-intro-backdrop"></div>' +
+      '<section class="artist-intro-sheet" role="dialog" aria-modal="true" aria-labelledby="artist-intro-title">' +
+        '<div class="artist-intro-grip" aria-hidden="true"></div>' +
+        '<button class="artist-intro-close" type="button" aria-label="\u9589\u3058\u308b">\u00d7</button>' +
+        '<p class="artist-intro-meta"></p>' +
+        '<h2 class="artist-intro-title" id="artist-intro-title"></h2>' +
+        '<p class="artist-intro-copy"></p>' +
+      '</section>';
+    document.body.appendChild(layer);
+    var backdrop = layer.querySelector('.artist-intro-backdrop');
+    var closeButton = layer.querySelector('.artist-intro-close');
+    var meta = layer.querySelector('.artist-intro-meta');
+    var title = layer.querySelector('.artist-intro-title');
+    var copy = layer.querySelector('.artist-intro-copy');
+    var lastFocus = null;
+
+    function isSmartphone(){
+      var shortSide = Math.min(window.innerWidth,window.innerHeight);
+      return shortSide <= 500 && window.matchMedia('(pointer:coarse)').matches;
+    }
+    function openIntro(intro){
+      lastFocus = document.activeElement;
+      meta.textContent = intro.meta;
+      title.textContent = intro.title;
+      copy.textContent = intro.body;
+      layer.classList.add('is-open');
+      layer.setAttribute('aria-hidden','false');
+      window.setTimeout(function(){ closeButton.focus({preventScroll:true}); },220);
+    }
+    function closeIntro(){
+      if (!layer.classList.contains('is-open')) return;
+      layer.classList.remove('is-open');
+      layer.setAttribute('aria-hidden','true');
+      if (lastFocus && typeof lastFocus.focus === 'function') {
+        lastFocus.focus({preventScroll:true});
+      }
+    }
+    closeButton.addEventListener('click',closeIntro);
+    backdrop.addEventListener('click',closeIntro);
+    document.addEventListener('keydown',function(event){
+      if (event.key === 'Escape') closeIntro();
+    });
+
+    targets.forEach(function(target){
+      var cell = target.cell;
+      var timer = 0;
+      var press = null;
+      var suppressClickUntil = 0;
+      cell.classList.add('has-artist-intro');
+
+      function cancelPress(){
+        if (timer) window.clearTimeout(timer);
+        timer = 0;
+        press = null;
+      }
+      cell.addEventListener('pointerdown',function(event){
+        if (!isSmartphone() || event.pointerType === 'mouse' || event.isPrimary === false) return;
+        cancelPress();
+        press = {id:event.pointerId,x:event.clientX,y:event.clientY};
+        timer = window.setTimeout(function(){
+          timer = 0;
+          press = null;
+          suppressClickUntil = Date.now() + 900;
+          openIntro(target.intro);
+        },2500);
+      });
+      cell.addEventListener('pointermove',function(event){
+        if (!press || event.pointerId !== press.id) return;
+        var dx = event.clientX - press.x;
+        var dy = event.clientY - press.y;
+        if (Math.hypot(dx,dy) > 12) cancelPress();
+      },{passive:true});
+      cell.addEventListener('pointerup',cancelPress);
+      cell.addEventListener('pointercancel',cancelPress);
+      cell.addEventListener('pointerleave',cancelPress);
+      cell.addEventListener('lostpointercapture',cancelPress);
+      cell.addEventListener('contextmenu',function(event){
+        if (isSmartphone()) event.preventDefault();
+      });
+      cell.addEventListener('click',function(event){
+        if (Date.now() >= suppressClickUntil) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        suppressClickUntil = 0;
+      },true);
+      var viewer = cell.closest('.viewer');
+      if (viewer) viewer.addEventListener('scroll',cancelPress,{passive:true});
+      var landscapeShell = cell.closest('.landscape-shell');
+      if (landscapeShell) landscapeShell.addEventListener('scroll',cancelPress,{passive:true});
+    });
+  }
+
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       try { initFloatingTimeAxis(); } catch (_e) {}
+      try { initArtistIntros(); } catch (_e) {}
     });
   });
 })();
