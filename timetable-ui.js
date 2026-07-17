@@ -15,65 +15,39 @@
     body[data-day-label^="24"] .mbar .focus-toggle[aria-pressed="true"]{background:#f36b21!important}
     body[data-day-label^="25"] .mbar .focus-toggle[aria-pressed="true"]{background:#2387c8!important}
     body[data-day-label^="26"] .mbar .focus-toggle[aria-pressed="true"]{background:#e83f32!important}
-    .sticky-axis-title,.sticky-axis-top,.sticky-axis-left,.sticky-axis-top-frame{display:none;pointer-events:none;overflow:hidden;background:#fff}
-    .sticky-axis-title{
-      position:sticky;left:0;width:var(--sticky-axis-viewer-width,100%);height:var(--sticky-axis-title-height,0px);z-index:7
+    .floating-time-axis{
+      display:none;position:sticky;top:0;left:10px;width:44px;
+      height:var(--floating-axis-viewer-height,0px);margin-left:10px;
+      margin-bottom:calc(-1 * var(--floating-axis-viewer-height,0px));
+      z-index:5;pointer-events:none
     }
-    .sticky-axis-title>img{
-      display:block;width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important
+    .floating-time-window{
+      position:absolute;inset:10px 0;overflow:hidden;border-radius:999px;
+      background:rgba(255,255,255,.94);
+      -webkit-backdrop-filter:saturate(1.15) blur(10px);backdrop-filter:saturate(1.15) blur(10px);
+      box-shadow:inset 0 0 0 1px rgba(35,28,20,.07),0 8px 24px rgba(35,28,20,.15);
+      opacity:0;transform:translate3d(-7px,0,0) scale(.97);transform-origin:center;
+      transition:opacity .2s ease,transform .28s cubic-bezier(.22,1,.36,1);will-change:opacity,transform
     }
-    .sheet.dim-on>.sticky-axis-title>img{filter:none!important}
-    .sticky-axis-top{
-      position:sticky;top:0;width:100%;height:var(--sticky-axis-top-height,0px);
-      margin-bottom:calc(-1 * var(--sticky-axis-header-height,0px));z-index:4;
-      box-shadow:0 1px 0 rgba(0,0,0,.18),0 5px 12px rgba(0,0,0,.07)
+    .floating-time-axis.is-visible .floating-time-window{opacity:1;transform:translate3d(0,0,0) scale(1)}
+    .floating-time-track{
+      position:absolute;left:0;top:0;width:100%;height:var(--floating-axis-sheet-height,0px);
+      will-change:transform
     }
-    .sticky-axis-left{
-      position:sticky;left:0;width:var(--sticky-axis-left-width,0px);height:var(--sticky-axis-sheet-height,0px);
-      margin-bottom:calc(-1 * var(--sticky-axis-sheet-height,0px));z-index:5;
-      box-shadow:1px 0 0 rgba(0,0,0,.18),5px 0 12px rgba(0,0,0,.06)
+    .floating-time-label{
+      position:absolute;left:0;width:100%;transform:translateY(-50%);
+      display:flex;align-items:center;justify-content:center;
+      color:#252321;font-size:16px;font-weight:1000;line-height:1;
+      letter-spacing:-.04em;font-variant-numeric:tabular-nums;white-space:nowrap
     }
-    .sticky-axis-top>img{
-      width:100%!important;height:auto!important;
-      transform:translateY(calc(-1 * var(--sticky-axis-title-height,0px)))
+    .floating-time-label::after{
+      content:"";position:absolute;right:0;width:4px;height:1px;background:rgba(35,32,29,.28)
     }
-    .sticky-axis-left>img{
-      width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important;
-      transform:translateX(calc(-1 * var(--sticky-axis-left-shift,0px)))
-    }
-    .sticky-axis-left>.time-layer{
-      inset:0 auto auto 0!important;width:var(--sticky-axis-sheet-width,0px)!important;
-      height:var(--sticky-axis-sheet-height,0px)!important;
-      transform:translateX(calc(-1 * var(--sticky-axis-left-shift,0px)))
-    }
-    .sticky-axis-left:not(.is-following){visibility:hidden}
-    .sticky-axis-top-frame{
-      position:sticky;top:0;width:100%;height:var(--sticky-axis-top-height,0px);
-      margin-top:var(--sticky-axis-title-height,0px);
-      margin-bottom:calc(-1 * var(--sticky-axis-header-height,0px));z-index:4;
-      box-shadow:0 1px 0 rgba(0,0,0,.18),0 5px 12px rgba(0,0,0,.07)
-    }
-    .sticky-axis-top-content{
-      position:relative;width:var(--sticky-axis-sheet-width,0px);height:var(--sticky-axis-top-height,0px);
-      overflow:hidden;will-change:transform
-    }
-    .sticky-axis-top-content>img{
-      display:block;width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important;
-      transform:translateY(calc(-1 * var(--sticky-axis-title-height,0px)))
-    }
-    .sticky-axis-top-content>img.hdr-seg{position:absolute;left:0;top:0;display:none}
-    .sticky-axis-top-frame.dim-on img:not(.hdr-seg){filter:grayscale(1) opacity(.4)}
-    .sticky-axis-top-frame.dim-on img.hdr-seg.on{display:block}
     @media(max-width:680px){
-      .sheet.sticky-axes-live>.sticky-axis-title,.sheet.sticky-axes-live>.sticky-axis-top,.sheet.sticky-axes-live>.sticky-axis-left{display:block}
+      .viewer>.floating-time-axis-live{display:block}
     }
-    @media(max-width:820px) and (orientation:portrait){
-      .sheet.sticky-axes-landscape>.sticky-axis-title,.sheet.sticky-axes-landscape>.sticky-axis-top,.sheet.sticky-axes-landscape>.sticky-axis-left,.sticky-axis-top-frame{display:block}
-      .sheet.sticky-axes-landscape>.sticky-axis-top{visibility:hidden}
-    }
-    @media(max-width:820px) and (orientation:landscape){
-      .sheet.sticky-axes-landscape>.sticky-axis-title,.sheet.sticky-axes-landscape>.sticky-axis-top,.sheet.sticky-axes-landscape>.sticky-axis-left{display:block}
-    }
+    @media(max-width:820px){.viewer>.floating-time-axis-landscape{display:block}}
+    @media(prefers-reduced-motion:reduce){.floating-time-window{transition:opacity .12s linear;transform:none!important}}
   `;
   document.head.appendChild(style);
 
@@ -109,10 +83,9 @@
   });
   window.addEventListener('resize', syncNowLabelScale);
 
-  function initStickyAxes(){
-    if (sheet.querySelector('.sticky-axis-top')) return;
+  function initFloatingTimeAxis(){
     var viewer = document.querySelector('.viewer');
-    if (!viewer) return;
+    if (!viewer || viewer.querySelector('.floating-time-axis')) return;
 
     var children = [].slice.call(sheet.children);
     var base = children.find(function(el){
@@ -120,149 +93,87 @@
     });
     if (!base) return;
 
-    sheet.classList.add(document.querySelector('.landscape-shell') ? 'sticky-axes-landscape' : 'sticky-axes-live');
-
-    function cloneImage(className){
-      var image = base.cloneNode(false);
-      image.removeAttribute('id');
-      image.alt = '';
-      image.setAttribute('aria-hidden','true');
-      image.className = className;
-      return image;
-    }
-
-    var titleAxis = document.createElement('div');
-    titleAxis.className = 'sticky-axis-title';
-    titleAxis.setAttribute('aria-hidden','true');
-    titleAxis.appendChild(cloneImage('sticky-axis-title-image'));
-
-    var topAxis = document.createElement('div');
-    topAxis.className = 'sticky-axis-top';
-    topAxis.setAttribute('aria-hidden','true');
-    topAxis.appendChild(cloneImage('sticky-axis-image'));
-
-    var segmentPairs = [];
-    var originalSegments = children.filter(function(el){
-      return el.tagName === 'IMG' && el.classList.contains('hdr-seg');
-    });
-    var stageSegments = originalSegments.slice(1);
-    stageSegments.forEach(function(original){
-      var clone = original.cloneNode(false);
-      clone.removeAttribute('id');
-      clone.alt = '';
-      clone.setAttribute('aria-hidden','true');
-      clone.classList.add('sticky-axis-segment');
-      topAxis.appendChild(clone);
-      segmentPairs.push({ original:original, clone:clone });
-    });
-
-    var outerTopFrame = null;
-    var outerTopContent = null;
-    if (document.querySelector('.landscape-shell')) {
-      outerTopFrame = document.createElement('div');
-      outerTopFrame.className = 'sticky-axis-top-frame';
-      outerTopFrame.setAttribute('aria-hidden','true');
-      outerTopContent = topAxis.cloneNode(true);
-      outerTopContent.className = 'sticky-axis-top-content';
-      outerTopFrame.appendChild(outerTopContent);
-      viewer.parentNode.insertBefore(outerTopFrame,viewer);
-      var outerSegments = [].slice.call(outerTopContent.querySelectorAll('img.hdr-seg'));
-      stageSegments.forEach(function(original,index){
-        if (outerSegments[index]) segmentPairs.push({original:original,clone:outerSegments[index]});
-      });
-    }
-
-    var leftAxis = document.createElement('div');
-    leftAxis.className = 'sticky-axis-left';
-    leftAxis.setAttribute('aria-hidden','true');
-    leftAxis.appendChild(cloneImage('sticky-axis-image'));
     var timeLayer = sheet.querySelector('.time-layer');
-    if (timeLayer) {
-      var timeClone = timeLayer.cloneNode(true);
-      timeClone.removeAttribute('id');
-      timeClone.setAttribute('aria-hidden','true');
-      leftAxis.appendChild(timeClone);
-    }
-
-    sheet.insertBefore(titleAxis, base);
-    sheet.insertBefore(topAxis, base);
-    sheet.insertBefore(leftAxis, base);
-
-    function syncSegments(){
-      segmentPairs.forEach(function(pair){
-        pair.clone.classList.toggle('on', pair.original.classList.contains('on'));
+    var isLandscape = !!document.querySelector('.landscape-shell');
+    var axis = document.createElement('div');
+    axis.className = 'floating-time-axis ' + (isLandscape ? 'floating-time-axis-landscape' : 'floating-time-axis-live');
+    axis.setAttribute('aria-hidden','true');
+    var axisWindow = document.createElement('div');
+    axisWindow.className = 'floating-time-window';
+    var track = document.createElement('div');
+    track.className = 'floating-time-track';
+    var sourceLabels = timeLayer ? [].slice.call(timeLayer.querySelectorAll('.time-label')) : [];
+    if (sourceLabels.length) {
+      sourceLabels.forEach(function(source){
+        var label = document.createElement('div');
+        label.className = 'floating-time-label';
+        label.style.top = source.style.top;
+        label.textContent = source.textContent;
+        track.appendChild(label);
       });
+    } else {
+      for (var hour=9;hour<=29;hour++) {
+        var fallbackLabel = document.createElement('div');
+        fallbackLabel.className = 'floating-time-label';
+        fallbackLabel.style.top = (7.58 + ((hour - 9) / 20) * (96.13 - 7.58)).toFixed(3) + '%';
+        fallbackLabel.textContent = hour;
+        track.appendChild(fallbackLabel);
+      }
     }
-    syncSegments();
-    if (segmentPairs.length) {
-      var segmentObserver = new MutationObserver(syncSegments);
-      segmentPairs.forEach(function(pair){
-        segmentObserver.observe(pair.original, {attributes:true,attributeFilter:['class']});
-      });
-    }
-    function syncOuterState(){
-      if (outerTopFrame) outerTopFrame.classList.toggle('dim-on',sheet.classList.contains('dim-on'));
-    }
-    syncOuterState();
-    if (outerTopFrame) new MutationObserver(syncOuterState).observe(sheet,{attributes:true,attributeFilter:['class']});
+    axisWindow.appendChild(track);
+    axis.appendChild(axisWindow);
+    viewer.insertBefore(axis,sheet);
 
     var firstColumn = Infinity;
     [].slice.call(sheet.querySelectorAll('.pick-cell')).forEach(function(cell){
       var left = parseFloat(cell.style.left);
       if (Number.isFinite(left) && left < firstColumn) firstColumn = left;
     });
-    var leftRatio = Number.isFinite(firstColumn) ? Math.max(.06,(firstColumn / 100) - .001) : .071;
+    var leftRatio = Number.isFinite(firstColumn) ? Math.max(.06,firstColumn / 100) : .071;
+    var timeAxisWidth = 0;
+    var isVisible = false;
+
+    function syncPosition(){
+      track.style.transform = 'translate3d(0,' + (-viewer.scrollTop - 10).toFixed(2) + 'px,0)';
+      var shouldShow = timeAxisWidth > 0 && viewer.scrollLeft >= Math.ceil(timeAxisWidth);
+      if (shouldShow !== isVisible) {
+        isVisible = shouldShow;
+        axis.classList.toggle('is-visible',isVisible);
+      }
+    }
 
     function updateAxisSize(){
       var width = base.offsetWidth || sheet.offsetWidth;
       if (!width) return;
       var ratio = base.naturalWidth && base.naturalHeight ? base.naturalHeight / base.naturalWidth : 2480 / 3508;
       var height = width * ratio;
-      var stageTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stage-top'));
-      if (!Number.isFinite(stageTop)) stageTop = 7.58;
-      var titleBottom = 2.6;
-      var titleHeight = height * titleBottom / 100;
-      var headerHeight = height * stageTop / 100;
-      var leftNaturalWidth = width * leftRatio;
-      var leftVisibleWidth = Math.min(leftNaturalWidth,51);
-      var values = {
-        '--sticky-axis-viewer-width':viewer.clientWidth.toFixed(2)+'px',
-        '--sticky-axis-sheet-width':width.toFixed(2)+'px',
-        '--sticky-axis-sheet-height':height.toFixed(2)+'px',
-        '--sticky-axis-title-height':titleHeight.toFixed(2)+'px',
-        '--sticky-axis-header-height':headerHeight.toFixed(2)+'px',
-        '--sticky-axis-top-height':Math.max(0,headerHeight-titleHeight).toFixed(2)+'px',
-        '--sticky-axis-left-width':leftVisibleWidth.toFixed(2)+'px',
-        '--sticky-axis-left-shift':Math.max(0,leftNaturalWidth-leftVisibleWidth).toFixed(2)+'px'
-      };
-      Object.keys(values).forEach(function(name){
-        sheet.style.setProperty(name,values[name]);
-        if (outerTopFrame) outerTopFrame.style.setProperty(name,values[name]);
-      });
+      timeAxisWidth = width * leftRatio;
+      axis.style.setProperty('--floating-axis-viewer-height',viewer.clientHeight.toFixed(2)+'px');
+      axis.style.setProperty('--floating-axis-sheet-height',height.toFixed(2)+'px');
+      syncPosition();
     }
 
-    function syncScrollState(){
-      leftAxis.classList.toggle('is-following',viewer.scrollLeft > 1);
-      if (outerTopContent) outerTopContent.style.transform='translate3d('+(-viewer.scrollLeft).toFixed(2)+'px,0,0)';
-    }
-    var scrollSyncPending = false;
+    var scrollPending = false;
     viewer.addEventListener('scroll',function(){
-      if (scrollSyncPending) return;
-      scrollSyncPending = true;
-      requestAnimationFrame(function(){ scrollSyncPending=false; syncScrollState(); });
+      if (scrollPending) return;
+      scrollPending = true;
+      requestAnimationFrame(function(){scrollPending=false;syncPosition();});
     },{passive:true});
 
     updateAxisSize();
-    syncScrollState();
     if (base.complete) updateAxisSize();
     else base.addEventListener('load',updateAxisSize,{once:true});
-    if ('ResizeObserver' in window) new ResizeObserver(updateAxisSize).observe(base);
+    if ('ResizeObserver' in window) {
+      var sizeObserver = new ResizeObserver(updateAxisSize);
+      sizeObserver.observe(base);
+      sizeObserver.observe(viewer);
+    }
     window.addEventListener('resize',updateAxisSize);
   }
 
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
-      try { initStickyAxes(); } catch (_e) {}
+      try { initFloatingTimeAxis(); } catch (_e) {}
     });
   });
 })();
