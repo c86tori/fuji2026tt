@@ -16,9 +16,11 @@
     body[data-day-label^="25"] .mbar .focus-toggle[aria-pressed="true"]{background:#2387c8!important}
     body[data-day-label^="26"] .mbar .focus-toggle[aria-pressed="true"]{background:#e83f32!important}
     .floating-time-axis{
-      display:none;position:absolute;top:0;left:var(--floating-axis-offset,4px);
+      display:none;position:sticky;top:0;left:var(--floating-axis-offset,4px);
       width:var(--floating-axis-width,14px);height:var(--floating-axis-viewer-height,0px);
-      z-index:5;pointer-events:none;will-change:transform
+      margin-left:var(--floating-axis-offset,4px);
+      margin-bottom:calc(-1 * var(--floating-axis-viewer-height,0px));
+      z-index:5;pointer-events:none
     }
     .floating-time-window{
       position:absolute;inset:var(--floating-axis-inset,5px) 0;overflow:hidden;border-radius:999px;
@@ -160,16 +162,22 @@
         var visibleTop = Math.max(viewerTop,landscapeShell.scrollTop);
         var visibleBottom = Math.min(viewerTop + viewer.clientHeight,landscapeShell.scrollTop + landscapeShell.clientHeight);
         var visibleHeight = Math.max(0,visibleBottom - visibleTop);
-        axis.style.top = visibleTop.toFixed(2) + 'px';
-        axis.style.left = (viewer.offsetLeft + axisOffset).toFixed(2) + 'px';
+        var shellStyle = getComputedStyle(landscapeShell);
+        var shellVerticalPadding = (parseFloat(shellStyle.paddingTop) || 0) + (parseFloat(shellStyle.paddingBottom) || 0);
+        var nativeHeight = Math.min(viewer.clientHeight,Math.max(0,landscapeShell.clientHeight - shellVerticalPadding));
+        var stickyShift = Math.max(0,landscapeShell.scrollTop - viewerTop);
+        axis.style.top = '';
+        axis.style.left = '';
+        axis.style.marginLeft = (viewer.offsetLeft + axisOffset).toFixed(2) + 'px';
         axis.style.transform = 'none';
-        axis.style.setProperty('--floating-axis-viewer-height',visibleHeight.toFixed(2)+'px');
-        track.style.transform = 'translate3d(0,' + (viewerTop - visibleTop - viewer.scrollTop - windowInset).toFixed(2) + 'px,0)';
+        axis.style.setProperty('--floating-axis-viewer-height',nativeHeight.toFixed(2)+'px');
+        track.style.transform = 'translate3d(0,' + (-viewer.scrollTop - stickyShift - windowInset).toFixed(2) + 'px,0)';
         isInView = visibleHeight > windowInset * 2 + 1;
       } else {
         axis.style.top = '';
         axis.style.left = '';
-        axis.style.transform = 'translate3d(' + viewer.scrollLeft.toFixed(2) + 'px,' + viewer.scrollTop.toFixed(2) + 'px,0)';
+        axis.style.marginLeft = '';
+        axis.style.transform = 'none';
         axis.style.setProperty('--floating-axis-viewer-height',viewer.clientHeight.toFixed(2)+'px');
         track.style.transform = 'translate3d(0,' + (-viewer.scrollTop - windowInset).toFixed(2) + 'px,0)';
       }
