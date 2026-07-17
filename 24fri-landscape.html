@@ -173,6 +173,10 @@
       .info-close{width:100%;margin-top:12px;min-height:44px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer}
     }
 
+    /* --- hour labels overlaid on the sheet (readable at any zoom / when dimmed) --- */
+    .time-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
+    .time-label{position:absolute;right:93.1%;transform:translateY(-50%);display:flex;align-items:center;justify-content:flex-end;background:#fefefe;color:#333;font-weight:900;font-size:calc(8px * max(1, var(--zscale,1)));line-height:1;padding:.18em .12em .18em 1.5em;border-radius:2px;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+
     /* ===== mobile: floating zoom control ===== */
     .zoomctl{display:none}
     @media(max-width:820px){
@@ -553,5 +557,22 @@
 
 <script src="timetable-ui.js"></script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+
+<script>
+  (function(){
+    var sheet=document.querySelector('.sheet');
+    if(!sheet || sheet.querySelector('.time-layer')) return;
+    var TOP=7.58, BOTTOM=96.13, START=9, END=29;
+    var layer=document.createElement('div');
+    layer.className='time-layer'; layer.setAttribute('aria-hidden','true');
+    for(var h=START; h<=END; h++){
+      var t=TOP+((h-START)/(END-START))*(BOTTOM-TOP);
+      var el=document.createElement('div');
+      el.className='time-label'; el.style.top=t.toFixed(3)+'%'; el.textContent=h;
+      layer.appendChild(el);
+    }
+    sheet.appendChild(layer);
+  })();
+</script>
 </body>
 </html>
