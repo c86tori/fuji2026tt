@@ -15,10 +15,17 @@
     body[data-day-label^="24"] .mbar .focus-toggle[aria-pressed="true"]{background:#f36b21!important}
     body[data-day-label^="25"] .mbar .focus-toggle[aria-pressed="true"]{background:#2387c8!important}
     body[data-day-label^="26"] .mbar .focus-toggle[aria-pressed="true"]{background:#e83f32!important}
-    .sticky-axis-top,.sticky-axis-left,.sticky-axis-top-frame{display:none;pointer-events:none;overflow:hidden;background:#fff}
+    .sticky-axis-title,.sticky-axis-top,.sticky-axis-left,.sticky-axis-top-frame{display:none;pointer-events:none;overflow:hidden;background:#fff}
+    .sticky-axis-title{
+      position:sticky;left:0;width:var(--sticky-axis-viewer-width,100%);height:var(--sticky-axis-title-height,0px);z-index:7
+    }
+    .sticky-axis-title>img{
+      display:block;width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important
+    }
+    .sheet.dim-on>.sticky-axis-title>img{filter:none!important}
     .sticky-axis-top{
       position:sticky;top:0;width:100%;height:var(--sticky-axis-top-height,0px);
-      margin-bottom:calc(-1 * var(--sticky-axis-top-height,0px));z-index:4;
+      margin-bottom:calc(-1 * var(--sticky-axis-header-height,0px));z-index:4;
       box-shadow:0 1px 0 rgba(0,0,0,.18),0 5px 12px rgba(0,0,0,.07)
     }
     .sticky-axis-left{
@@ -26,33 +33,46 @@
       margin-bottom:calc(-1 * var(--sticky-axis-sheet-height,0px));z-index:5;
       box-shadow:1px 0 0 rgba(0,0,0,.18),5px 0 12px rgba(0,0,0,.06)
     }
-    .sticky-axis-top>img{width:100%!important;height:auto!important}
+    .sticky-axis-top>img{
+      width:100%!important;height:auto!important;
+      transform:translateY(calc(-1 * var(--sticky-axis-title-height,0px)))
+    }
     .sticky-axis-left>img{
-      width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important
+      width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important;
+      transform:translateX(calc(-1 * var(--sticky-axis-left-shift,0px)))
     }
     .sticky-axis-left>.time-layer{
       inset:0 auto auto 0!important;width:var(--sticky-axis-sheet-width,0px)!important;
-      height:var(--sticky-axis-sheet-height,0px)!important
+      height:var(--sticky-axis-sheet-height,0px)!important;
+      transform:translateX(calc(-1 * var(--sticky-axis-left-shift,0px)))
     }
+    .sticky-axis-left:not(.is-following){visibility:hidden}
     .sticky-axis-top-frame{
       position:sticky;top:0;width:100%;height:var(--sticky-axis-top-height,0px);
-      margin-bottom:calc(-1 * var(--sticky-axis-top-height,0px));z-index:4;
+      margin-top:var(--sticky-axis-title-height,0px);
+      margin-bottom:calc(-1 * var(--sticky-axis-header-height,0px));z-index:4;
       box-shadow:0 1px 0 rgba(0,0,0,.18),0 5px 12px rgba(0,0,0,.07)
     }
     .sticky-axis-top-content{
       position:relative;width:var(--sticky-axis-sheet-width,0px);height:var(--sticky-axis-top-height,0px);
       overflow:hidden;will-change:transform
     }
-    .sticky-axis-top-content>img{display:block;width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important}
+    .sticky-axis-top-content>img{
+      display:block;width:var(--sticky-axis-sheet-width,0px)!important;height:auto!important;max-width:none!important;
+      transform:translateY(calc(-1 * var(--sticky-axis-title-height,0px)))
+    }
     .sticky-axis-top-content>img.hdr-seg{position:absolute;left:0;top:0;display:none}
     .sticky-axis-top-frame.dim-on img:not(.hdr-seg){filter:grayscale(1) opacity(.4)}
     .sticky-axis-top-frame.dim-on img.hdr-seg.on{display:block}
-    @media(max-width:680px){.sheet.sticky-axes-live>.sticky-axis-top,.sheet.sticky-axes-live>.sticky-axis-left{display:block}}
+    @media(max-width:680px){
+      .sheet.sticky-axes-live>.sticky-axis-title,.sheet.sticky-axes-live>.sticky-axis-top,.sheet.sticky-axes-live>.sticky-axis-left{display:block}
+    }
     @media(max-width:820px) and (orientation:portrait){
-      .sheet.sticky-axes-landscape>.sticky-axis-left,.sticky-axis-top-frame{display:block}
+      .sheet.sticky-axes-landscape>.sticky-axis-title,.sheet.sticky-axes-landscape>.sticky-axis-top,.sheet.sticky-axes-landscape>.sticky-axis-left,.sticky-axis-top-frame{display:block}
+      .sheet.sticky-axes-landscape>.sticky-axis-top{visibility:hidden}
     }
     @media(max-width:820px) and (orientation:landscape){
-      .sheet.sticky-axes-landscape>.sticky-axis-top,.sheet.sticky-axes-landscape>.sticky-axis-left{display:block}
+      .sheet.sticky-axes-landscape>.sticky-axis-title,.sheet.sticky-axes-landscape>.sticky-axis-top,.sheet.sticky-axes-landscape>.sticky-axis-left{display:block}
     }
   `;
   document.head.appendChild(style);
@@ -111,6 +131,11 @@
       return image;
     }
 
+    var titleAxis = document.createElement('div');
+    titleAxis.className = 'sticky-axis-title';
+    titleAxis.setAttribute('aria-hidden','true');
+    titleAxis.appendChild(cloneImage('sticky-axis-title-image'));
+
     var topAxis = document.createElement('div');
     topAxis.className = 'sticky-axis-top';
     topAxis.setAttribute('aria-hidden','true');
@@ -120,7 +145,8 @@
     var originalSegments = children.filter(function(el){
       return el.tagName === 'IMG' && el.classList.contains('hdr-seg');
     });
-    originalSegments.forEach(function(original){
+    var stageSegments = originalSegments.slice(1);
+    stageSegments.forEach(function(original){
       var clone = original.cloneNode(false);
       clone.removeAttribute('id');
       clone.alt = '';
@@ -141,7 +167,7 @@
       outerTopFrame.appendChild(outerTopContent);
       viewer.parentNode.insertBefore(outerTopFrame,viewer);
       var outerSegments = [].slice.call(outerTopContent.querySelectorAll('img.hdr-seg'));
-      originalSegments.forEach(function(original,index){
+      stageSegments.forEach(function(original,index){
         if (outerSegments[index]) segmentPairs.push({original:original,clone:outerSegments[index]});
       });
     }
@@ -158,6 +184,7 @@
       leftAxis.appendChild(timeClone);
     }
 
+    sheet.insertBefore(titleAxis, base);
     sheet.insertBefore(topAxis, base);
     sheet.insertBefore(leftAxis, base);
 
@@ -193,11 +220,20 @@
       var height = width * ratio;
       var stageTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stage-top'));
       if (!Number.isFinite(stageTop)) stageTop = 7.58;
+      var titleBottom = 2.6;
+      var titleHeight = height * titleBottom / 100;
+      var headerHeight = height * stageTop / 100;
+      var leftNaturalWidth = width * leftRatio;
+      var leftVisibleWidth = Math.min(leftNaturalWidth,51);
       var values = {
+        '--sticky-axis-viewer-width':viewer.clientWidth.toFixed(2)+'px',
         '--sticky-axis-sheet-width':width.toFixed(2)+'px',
         '--sticky-axis-sheet-height':height.toFixed(2)+'px',
-        '--sticky-axis-top-height':(height * stageTop / 100).toFixed(2)+'px',
-        '--sticky-axis-left-width':(width * leftRatio).toFixed(2)+'px'
+        '--sticky-axis-title-height':titleHeight.toFixed(2)+'px',
+        '--sticky-axis-header-height':headerHeight.toFixed(2)+'px',
+        '--sticky-axis-top-height':Math.max(0,headerHeight-titleHeight).toFixed(2)+'px',
+        '--sticky-axis-left-width':leftVisibleWidth.toFixed(2)+'px',
+        '--sticky-axis-left-shift':Math.max(0,leftNaturalWidth-leftVisibleWidth).toFixed(2)+'px'
       };
       Object.keys(values).forEach(function(name){
         sheet.style.setProperty(name,values[name]);
@@ -205,18 +241,19 @@
       });
     }
 
-    function syncOuterPosition(){
+    function syncScrollState(){
+      leftAxis.classList.toggle('is-following',viewer.scrollLeft > 1);
       if (outerTopContent) outerTopContent.style.transform='translate3d('+(-viewer.scrollLeft).toFixed(2)+'px,0,0)';
     }
-    var outerFramePending = false;
-    if (outerTopContent) viewer.addEventListener('scroll',function(){
-      if (outerFramePending) return;
-      outerFramePending = true;
-      requestAnimationFrame(function(){ outerFramePending=false; syncOuterPosition(); });
+    var scrollSyncPending = false;
+    viewer.addEventListener('scroll',function(){
+      if (scrollSyncPending) return;
+      scrollSyncPending = true;
+      requestAnimationFrame(function(){ scrollSyncPending=false; syncScrollState(); });
     },{passive:true});
 
     updateAxisSize();
-    syncOuterPosition();
+    syncScrollState();
     if (base.complete) updateAxisSize();
     else base.addEventListener('load',updateAxisSize,{once:true});
     if ('ResizeObserver' in window) new ResizeObserver(updateAxisSize).observe(base);
