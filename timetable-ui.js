@@ -44,14 +44,18 @@
     .pick-cell.has-artist-intro{
       -webkit-touch-callout:none;-webkit-user-select:none;user-select:none
     }
+    .pick-time-layer{
+      position:absolute;inset:0;z-index:7;pointer-events:none
+    }
     .pick-time-label{
-      position:absolute;z-index:4;display:none;box-sizing:border-box;padding:0 1px;
+      position:absolute;display:none;box-sizing:border-box;padding:1px 2px;
       overflow:hidden;color:#111;font-size:calc(6.8px * max(1,var(--zscale,1)));
       font-weight:800;line-height:1;letter-spacing:-.025em;text-align:left;white-space:nowrap;
       font-variant-numeric:tabular-nums;text-shadow:none;pointer-events:none;
+      background:rgba(255,255,255,.88);border-radius:2px;
       transform:translate3d(0,calc(-100% - 1px),0)
     }
-    .pick-cell.is-picked.has-pick-time + .pick-time-label{display:block}
+    .pick-time-label.is-visible{display:block}
     .pick-time-label.is-left{
       padding:1px 2px 0 0;text-align:right;
       transform:translate3d(calc(-100% - 2px),0,0)
@@ -323,6 +327,10 @@
       '26sun':'23:50'
     };
     var records = [];
+    var labelLayer = document.createElement('div');
+    labelLayer.className = 'pick-time-layer';
+    labelLayer.setAttribute('aria-hidden','true');
+    sheet.appendChild(labelLayer);
     [].slice.call(sheet.querySelectorAll('.pick-cell')).forEach(function(cell){
       var titleParts = cell.title.split(' / ');
       var stage = titleParts[titleParts.length-2];
@@ -339,10 +347,34 @@
         label.classList.add('is-left');
       }
       cell.classList.add('has-pick-time');
-      cell.insertAdjacentElement('afterend',label);
+      labelLayer.appendChild(label);
       records.push({cell:cell,label:label,full:showTime,short:showTime.slice(0,6)});
     });
-    if (!records.length) return;
+    if (!records.length) {
+      labelLayer.remove();
+      return;
+    }
+
+    function syncLabelVisibility(record){
+      record.label.classList.toggle('is-visible',record.cell.classList.contains('is-picked'));
+    }
+    records.forEach(syncLabelVisibility);
+    var pickLayer = sheet.querySelector('.pick-layer');
+    if (pickLayer && 'MutationObserver' in window) {
+      var pickObserver = new MutationObserver(function(mutations){
+        mutations.forEach(function(mutation){
+          var cell = mutation.target;
+          records.forEach(function(record){
+            if (record.cell === cell) syncLabelVisibility(record);
+          });
+        });
+      });
+      pickObserver.observe(pickLayer,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});
+    } else {
+      records.forEach(function(record){
+        record.cell.addEventListener('click',function(){ syncLabelVisibility(record); });
+      });
+    }
 
     var measureContext = document.createElement('canvas').getContext('2d');
     function measureText(text,fontSize,fontFamily){
