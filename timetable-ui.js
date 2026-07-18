@@ -52,6 +52,10 @@
       transform:translate3d(0,calc(-100% - 1px),0)
     }
     .pick-cell.is-picked.has-pick-time + .pick-time-label{display:block}
+    .pick-time-label.is-left{
+      padding:1px 2px 0 0;text-align:right;
+      transform:translate3d(calc(-100% - 2px),0,0)
+    }
     .artist-intro-layer{
       position:fixed;inset:0;z-index:100;visibility:hidden;pointer-events:none;
       transition:visibility 0s linear .38s
@@ -313,6 +317,11 @@
       'GYPSY AVALON':true,
       '苗場食堂':true
     };
+    var leftTimeStart = {
+      '24fri':'24:30',
+      '25sat':'24:30',
+      '26sun':'23:50'
+    };
     var records = [];
     [].slice.call(sheet.querySelectorAll('.pick-cell')).forEach(function(cell){
       var titleParts = cell.title.split(' / ');
@@ -326,6 +335,9 @@
       label.style.left = cell.style.left;
       label.style.top = cell.style.top;
       label.style.width = cell.style.width;
+      if (stage === 'RED MARQUEE' && leftTimeStart[dayCode] && showTime.slice(0,5) >= leftTimeStart[dayCode]) {
+        label.classList.add('is-left');
+      }
       cell.classList.add('has-pick-time');
       cell.insertAdjacentElement('afterend',label);
       records.push({cell:cell,label:label,full:showTime,short:showTime.slice(0,6)});
@@ -551,7 +563,7 @@ TAKKYU ISHINO（石野卓球）
           press = null;
           suppressClickUntil = Date.now() + 900;
           openIntro(target);
-        },2500);
+        },1500);
       });
       cell.addEventListener('pointermove',function(event){
         if (!press || event.pointerId !== press.id) return;
