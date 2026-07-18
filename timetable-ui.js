@@ -44,6 +44,15 @@
     .pick-cell.has-artist-intro{
       -webkit-touch-callout:none;-webkit-user-select:none;user-select:none
     }
+    .pick-time-label{
+      position:absolute;left:2px;top:2px;z-index:2;display:none;max-width:calc(100% - 4px);
+      overflow:hidden;color:#fff;font-size:calc(6.8px * max(1,var(--zscale,1)));
+      font-weight:800;line-height:1;letter-spacing:-.025em;white-space:nowrap;
+      font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.38);pointer-events:none
+    }
+    .pick-cell.is-picked.has-pick-time .pick-time-label{display:block}
+    .pick-cell.is-gold .pick-time-label{color:#3a2a00;text-shadow:0 1px 1px rgba(255,255,255,.55)}
+    .pick-cell.is-rainbow .pick-time-label{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65),0 0 5px rgba(0,0,0,.35)}
     .artist-intro-layer{
       position:fixed;inset:0;z-index:100;visibility:hidden;pointer-events:none;
       transition:visibility 0s linear .38s
@@ -78,7 +87,7 @@
     }
     .artist-intro-meta{
       margin:0 48px 7px 0;color:var(--artist-intro-accent);font:800 12px/1.35 system-ui,sans-serif;
-      letter-spacing:.075em;text-transform:uppercase
+      letter-spacing:.075em;text-transform:uppercase;white-space:pre-line
     }
     .artist-intro-title{
       margin:0 48px 14px 0;font:900 clamp(25px,7.3vw,38px)/1.16 system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;
@@ -295,6 +304,30 @@
     window.addEventListener('resize',updateAxisSize);
   }
 
+  function initPickedShowTimes(){
+    var visibleStages = {
+      'GREEN STAGE':true,
+      'WHITE STAGE':true,
+      'RED MARQUEE':true,
+      'FIELD OF HEAVEN':true,
+      'ORANGE ECHO':true,
+      'GYPSY AVALON':true,
+      '苗場食堂':true
+    };
+    [].slice.call(sheet.querySelectorAll('.pick-cell')).forEach(function(cell){
+      var titleParts = cell.title.split(' / ');
+      var stage = titleParts[titleParts.length-2];
+      var showTime = titleParts[titleParts.length-1];
+      if (!visibleStages[stage] || !/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(showTime)) return;
+      var label = document.createElement('time');
+      label.className = 'pick-time-label';
+      label.setAttribute('aria-hidden','true');
+      label.textContent = showTime;
+      cell.classList.add('has-pick-time');
+      cell.appendChild(label);
+    });
+  }
+
   function initArtistIntros(){
     var introSource = `テレビ大陸音頭
 札幌で結成された若き4人組。ポストパンクの鋭い反復、変則的なリズム、むき出しのノイズを衝動的に鳴らしながら、不意に耳に残る歌やメロディへ着地します。整いすぎていない演奏の危うさと、何が起こるか分からない緊張感が魅力。ROOKIE A GO-GOから観客の支持を得てRED MARQUEEへ進んだ、現在の日本の若手オルタナティブを象徴する存在です。
@@ -388,13 +421,21 @@ TAKKYU ISHINO（石野卓球）
     intros['んoon'] = intros['んoon（フーン）'];
     intros.LAUSBUB = intros['LAUSBUB（ラウスバブ）'];
     intros['TAKKYU ISHINO'] = intros['TAKKYU ISHINO（石野卓球）'];
+    var duplicateShowMeta = {
+      'SON ROMPE PERA':'24 FRI · WHITE STAGE · 13:00–13:50\n24 FRI · CRYSTAL PALACE TENT · 27:15–28:00',
+      'TORO Y MOI':'24 FRI · WHITE STAGE · 16:40–17:40\n24 FRI · RED MARQUEE · 24:30–26:00',
+      'LA LOM':'24 FRI · CRYSTAL PALACE TENT · 23:45–24:30\n25 SAT · FIELD OF HEAVEN · 14:40–15:40',
+      'TĀL FRY':'26 SUN · FIELD OF HEAVEN · 13:20–14:20\n26 SUN · CRYSTAL PALACE TENT · 25:30–26:15'
+    };
     var cells = [].slice.call(sheet.querySelectorAll('.pick-cell'));
     var targets = cells.map(function(cell){
       var name = cell.querySelector('span');
-      var intro = name ? intros[name.textContent.trim()] : null;
+      var artistName = name ? name.textContent.trim() : '';
+      var intro = intros[artistName];
       var titleParts = cell.title.split(' / ');
       var showDetails = titleParts.slice(-2).join(' · ').replace(/(\d{2}:\d{2})-(\d{2}:\d{2})$/,'$1–$2');
-      return intro ? {cell:cell,intro:intro,meta:[dayLabel,showDetails].filter(Boolean).join(' · ')} : null;
+      var singleShowMeta = [dayLabel,showDetails].filter(Boolean).join(' · ');
+      return intro ? {cell:cell,intro:intro,meta:duplicateShowMeta[artistName] || singleShowMeta} : null;
     }).filter(Boolean);
     if (!targets.length) return;
 
@@ -496,6 +537,7 @@ TAKKYU ISHINO（石野卓球）
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       try { initFloatingTimeAxis(); } catch (_e) {}
+      try { initPickedShowTimes(); } catch (_e) {}
       try { initArtistIntros(); } catch (_e) {}
     });
   });

@@ -1,6 +1,6 @@
 /* FUJI '26 timetable — offline service worker.
    To publish updated content, bump CACHE (e.g. v1 -> v2). */
-const CACHE = 'fuji2026-v18';
+const CACHE = 'fuji2026-v20';
 
 const ASSETS = [
   './', 'index.html',
