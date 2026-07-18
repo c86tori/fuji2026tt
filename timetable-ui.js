@@ -48,7 +48,7 @@
       position:absolute;inset:0;z-index:7;pointer-events:none
     }
     .pick-time-label{
-      position:absolute;display:none;box-sizing:border-box;padding:1px 2px;
+      position:absolute;display:none;width:max-content;box-sizing:border-box;padding:1px 2px;
       overflow:hidden;color:#111;font-size:calc(6.8px * max(1,var(--zscale,1)));
       font-weight:800;line-height:1;letter-spacing:-.025em;text-align:left;white-space:nowrap;
       font-variant-numeric:tabular-nums;text-shadow:none;pointer-events:none;
@@ -342,7 +342,7 @@
       label.textContent = showTime;
       label.style.left = cell.style.left;
       label.style.top = cell.style.top;
-      label.style.width = cell.style.width;
+      label.style.maxWidth = cell.style.width;
       if (stage === 'RED MARQUEE' && leftTimeStart[dayCode] && showTime.slice(0,5) >= leftTimeStart[dayCode]) {
         label.classList.add('is-left');
       }
@@ -389,7 +389,7 @@
       var axisFontSize = axisStyle ? parseFloat(axisStyle.fontSize) : 8;
       var baseFontSize = (Number.isFinite(axisFontSize) ? axisFontSize : 8) * .85;
       records.forEach(function(record){
-        var available = Math.max(0,record.cell.offsetWidth - 2);
+        var available = Math.max(0,record.cell.offsetWidth - 4);
         var fontFamily = getComputedStyle(record.label).fontFamily || 'system-ui,sans-serif';
         var text = record.full;
         var measured = measureText(text,baseFontSize,fontFamily);
