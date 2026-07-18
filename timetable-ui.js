@@ -45,14 +45,13 @@
       -webkit-touch-callout:none;-webkit-user-select:none;user-select:none
     }
     .pick-time-label{
-      position:absolute;left:2px;top:2px;z-index:2;display:none;max-width:calc(100% - 4px);
-      overflow:hidden;color:#fff;font-size:calc(6.8px * max(1,var(--zscale,1)));
-      font-weight:800;line-height:1;letter-spacing:-.025em;white-space:nowrap;
-      font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.38);pointer-events:none
+      position:absolute;z-index:4;display:none;box-sizing:border-box;padding:0 1px;
+      overflow:hidden;color:#111;font-size:calc(6.8px * max(1,var(--zscale,1)));
+      font-weight:800;line-height:1;letter-spacing:-.025em;text-align:left;white-space:nowrap;
+      font-variant-numeric:tabular-nums;text-shadow:none;pointer-events:none;
+      transform:translate3d(0,calc(-100% - 1px),0)
     }
-    .pick-cell.is-picked.has-pick-time .pick-time-label{display:block}
-    .pick-cell.is-gold .pick-time-label{color:#3a2a00;text-shadow:0 1px 1px rgba(255,255,255,.55)}
-    .pick-cell.is-rainbow .pick-time-label{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65),0 0 5px rgba(0,0,0,.35)}
+    .pick-cell.is-picked.has-pick-time + .pick-time-label{display:block}
     .artist-intro-layer{
       position:fixed;inset:0;z-index:100;visibility:hidden;pointer-events:none;
       transition:visibility 0s linear .38s
@@ -314,6 +313,7 @@
       'GYPSY AVALON':true,
       '苗場食堂':true
     };
+    var records = [];
     [].slice.call(sheet.querySelectorAll('.pick-cell')).forEach(function(cell){
       var titleParts = cell.title.split(' / ');
       var stage = titleParts[titleParts.length-2];
@@ -323,9 +323,54 @@
       label.className = 'pick-time-label';
       label.setAttribute('aria-hidden','true');
       label.textContent = showTime;
+      label.style.left = cell.style.left;
+      label.style.top = cell.style.top;
+      label.style.width = cell.style.width;
       cell.classList.add('has-pick-time');
-      cell.appendChild(label);
+      cell.insertAdjacentElement('afterend',label);
+      records.push({cell:cell,label:label,full:showTime,short:showTime.slice(0,6)});
     });
+    if (!records.length) return;
+
+    var measureContext = document.createElement('canvas').getContext('2d');
+    function measureText(text,fontSize,fontFamily){
+      if (!measureContext) return text.length * fontSize * .58;
+      measureContext.font = '800 ' + fontSize + 'px ' + fontFamily;
+      var width = measureContext.measureText(text).width;
+      return width + Math.min(0,(text.length-1) * fontSize * -.025);
+    }
+    function fitLabels(){
+      var axisLabel = sheet.querySelector('.time-label');
+      var axisStyle = axisLabel ? getComputedStyle(axisLabel) : null;
+      var axisFontSize = axisStyle ? parseFloat(axisStyle.fontSize) : 8;
+      var baseFontSize = (Number.isFinite(axisFontSize) ? axisFontSize : 8) * .85;
+      records.forEach(function(record){
+        var available = Math.max(0,record.cell.offsetWidth - 2);
+        var fontFamily = getComputedStyle(record.label).fontFamily || 'system-ui,sans-serif';
+        var text = record.full;
+        var measured = measureText(text,baseFontSize,fontFamily);
+        var fontSize = baseFontSize;
+        if (measured > available) {
+          text = record.short;
+          measured = measureText(text,baseFontSize,fontFamily);
+          if (measured > available && measured > 0) {
+            fontSize = Math.max(.1,baseFontSize * available / measured);
+          }
+        }
+        record.label.textContent = text;
+        record.label.style.fontSize = fontSize.toFixed(3) + 'px';
+      });
+    }
+    var fitPending = false;
+    function scheduleFit(){
+      if (fitPending) return;
+      fitPending = true;
+      requestAnimationFrame(function(){ fitPending=false;fitLabels(); });
+    }
+    fitLabels();
+    new MutationObserver(scheduleFit).observe(sheet,{attributes:true,attributeFilter:['style']});
+    if ('ResizeObserver' in window) new ResizeObserver(scheduleFit).observe(sheet);
+    window.addEventListener('resize',scheduleFit);
   }
 
   function initArtistIntros(){
