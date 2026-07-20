@@ -295,8 +295,22 @@
     viewer.classList.add('active');
     statusText.textContent = displayNow.isTest ? dayStatusLabel() + ' のテスト位置を表示中です。' : dayStatusLabel() + ' の現在位置を表示中です。';
   }
-  update();
-  setInterval(update, 30000);
+  let clockTimer = 0;
+  function startClockTimer(){
+    update();
+    if (!clockTimer) clockTimer = window.setInterval(update, 30000);
+  }
+  function stopClockTimer(){
+    if (!clockTimer) return;
+    window.clearInterval(clockTimer);
+    clockTimer = 0;
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) stopClockTimer();
+    else startClockTimer();
+  });
+  if (document.hidden) update();
+  else startClockTimer();
 </script>
 
   <script>

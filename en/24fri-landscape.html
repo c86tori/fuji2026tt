@@ -294,8 +294,22 @@
     viewer.classList.add('active');
     statusText.textContent = displayNow.isTest ? 'Showing the test position for ' + dayStatusLabel() + '.' : 'Showing the current position for ' + dayStatusLabel() + '.';
   }
-  update();
-  setInterval(update, 30000);
+  let clockTimer = 0;
+  function startClockTimer(){
+    update();
+    if (!clockTimer) clockTimer = window.setInterval(update, 30000);
+  }
+  function stopClockTimer(){
+    if (!clockTimer) return;
+    window.clearInterval(clockTimer);
+    clockTimer = 0;
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) stopClockTimer();
+    else startClockTimer();
+  });
+  if (document.hidden) update();
+  else startClockTimer();
 </script>
   <script>
     (function(){

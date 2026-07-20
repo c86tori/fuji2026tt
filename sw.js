@@ -1,6 +1,6 @@
 /* FUJI '26 timetable — offline service worker.
    To publish updated content, bump CACHE (e.g. v1 -> v2). */
-const CACHE = 'fuji2026-v26';
+const CACHE = 'fuji2026-v27';
 
 const ASSETS = [
   './', 'index.html',
@@ -24,8 +24,21 @@ const ASSETS = [
 self.addEventListener('install', function(e){
   e.waitUntil(
     caches.open(CACHE).then(function(c){
-      // resilient precache: don't fail the whole install if one asset 404s
-      return Promise.all(ASSETS.map(function(u){ return c.add(u).catch(function(){}); }));
+      var failed = false;
+      return Promise.all(ASSETS.map(function(u){
+        var url = new URL(u, self.registration.scope).href;
+        return fetch(url, { cache:'reload' }).then(function(res){
+          if (!res || !res.ok) throw new Error('Precache failed: ' + u);
+          return c.put(url, res);
+        }).catch(function(){
+          failed = true;
+        });
+      })).then(function(){
+        if (!failed) return;
+        return caches.delete(CACHE).then(function(){
+          throw new Error('Precache incomplete; keeping the previous version.');
+        });
+      });
     }).then(function(){ return self.skipWaiting(); })
   );
 });

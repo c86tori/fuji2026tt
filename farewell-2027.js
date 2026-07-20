@@ -142,6 +142,7 @@
     if (shown) return;
     shown = true;
     if (watchTimer) window.clearInterval(watchTimer);
+    watchTimer = 0;
     overlay.setAttribute('aria-hidden', 'false');
     overlay.classList.add('is-on');
     window.setTimeout(function(){
@@ -154,6 +155,21 @@
     if (displayTime() >= endUtc) showFarewell();
   }
 
-  watchTimer = window.setInterval(checkFarewell, 1000);
-  checkFarewell();
+  function startFarewellWatch(){
+    if (shown || watchTimer) return;
+    checkFarewell();
+    if (!shown) watchTimer = window.setInterval(checkFarewell, 1000);
+  }
+
+  function stopFarewellWatch(){
+    if (!watchTimer) return;
+    window.clearInterval(watchTimer);
+    watchTimer = 0;
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) stopFarewellWatch();
+    else startFarewellWatch();
+  });
+  if (!document.hidden) startFarewellWatch();
 })();
