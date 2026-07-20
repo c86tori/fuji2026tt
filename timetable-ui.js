@@ -20,7 +20,7 @@
       width:var(--floating-axis-width,14px);height:var(--floating-axis-viewer-height,0px);
       margin-left:var(--floating-axis-offset,4px);
       margin-bottom:calc(-1 * var(--floating-axis-viewer-height,0px));
-      z-index:5;pointer-events:none
+      z-index:8;pointer-events:none
     }
     .floating-time-window{
       position:absolute;inset:var(--floating-axis-inset,5px) 0;overflow:hidden;border-radius:999px;
