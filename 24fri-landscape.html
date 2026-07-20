@@ -60,7 +60,7 @@
   
     .pick-help{margin:0 0 9px;color:var(--muted);font-size:11px;line-height:1.4;font-weight:400;text-align:left}
     .pick-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
-    .pick-cell{position:absolute;border:1px solid transparent;border-radius:5px;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:2px 3px;line-height:1.12;font-size:clamp(7px,.72vw,11px);font-weight:900;letter-spacing:-.03em;overflow:hidden;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;transition:background-color .12s ease,border-color .12s ease,box-shadow .12s ease}
+    .pick-cell{position:absolute;border:1px solid transparent;border-radius:5px;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:2px 3px;line-height:1.12;font-size:clamp(7px,.72vw,11px);font-weight:900;letter-spacing:-.03em;overflow:hidden;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;transition:background-color .12s ease,border-color .12s ease}
     .pick-cell span{opacity:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 2px rgba(0,0,0,.35)}
     .pick-cell.is-picked{background:var(--pick-color,rgba(18,18,18,.78));border-color:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22),0 1px 4px rgba(0,0,0,.18)}
     .pick-cell.is-picked span{opacity:1}
@@ -88,11 +88,10 @@
     .pick-cell span{position:relative;z-index:1}
     .pick-cell.is-gold{background:linear-gradient(135deg,#fff1b8,#f4c430 42%,#c8901a);border-color:rgba(255,246,204,.95);box-shadow:inset 0 0 0 1px rgba(120,80,0,.28),0 2px 9px rgba(198,144,26,.5)}
     .pick-cell.is-gold span{color:#3a2a00;text-shadow:0 1px 1px rgba(255,255,255,.5)}
-    .pick-cell.is-rainbow{border-color:rgba(255,255,255,.95);background:linear-gradient(115deg,#ff3b3b,#ff9f1c,#ffe600,#3bd16f,#37b7ff,#8a5cff,#ff3bd0);background-size:280% 280%;animation:pickRainbow 3.2s linear infinite,pickGlow 1.7s ease-in-out infinite}
+    .pick-cell.is-rainbow{border-color:rgba(255,255,255,.95);background:linear-gradient(115deg,#ff3b3b,#ff9f1c,#ffe600,#3bd16f,#37b7ff,#8a5cff,#ff3bd0);background-size:280% 280%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 0 9px rgba(255,255,255,.6),0 0 16px rgba(120,180,255,.4);animation:pickRainbow 3.2s linear infinite}
     .pick-cell.is-rainbow span{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6),0 0 6px rgba(0,0,0,.35)}
     .pick-cell.is-rainbow::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.85) 50%,transparent 66%);background-size:220% 100%;mix-blend-mode:screen;pointer-events:none;animation:pickSheen 2.4s linear infinite}
     @keyframes pickRainbow{0%{background-position:0% 50%}100%{background-position:280% 50%}}
-    @keyframes pickGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),0 0 6px rgba(255,255,255,.5)}50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),0 0 16px rgba(255,255,255,.9),0 0 26px rgba(120,180,255,.7)}}
     @keyframes pickSheen{0%{background-position:220% 0}100%{background-position:-220% 0}}
     @media(hover:hover){.pick-cell.is-gold:hover{background:linear-gradient(135deg,#fff6cc,#f8cc3e 42%,#d69a1e)}.pick-cell.is-rainbow:hover{background:linear-gradient(115deg,#ff3b3b,#ff9f1c,#ffe600,#3bd16f,#37b7ff,#8a5cff,#ff3bd0);background-size:280% 280%}}
     @media(prefers-reduced-motion:reduce){.pick-cell.is-rainbow{animation:none;background-size:100% 100%}.pick-cell.is-rainbow::after{animation:none;opacity:.4}}
